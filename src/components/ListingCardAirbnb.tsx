@@ -1,23 +1,25 @@
-import { Heart, Star } from "lucide-react";
+import { Heart, MapPin } from "lucide-react";
 
 interface ListingCardAirbnbProps {
   image: string;
   title: string;
+  description: string;
+  location: string;
   price: number;
-  nights: number;
-  rating: number;
+  period: string;
   isFavorite?: boolean;
-  isGuestFavorite?: boolean;
+  isVerified?: boolean;
 }
 
 const ListingCardAirbnb = ({
   image,
   title,
+  description,
+  location,
   price,
-  nights,
-  rating,
+  period,
   isFavorite = false,
-  isGuestFavorite = false,
+  isVerified = false,
 }: ListingCardAirbnbProps) => {
   return (
     <div className="flex-shrink-0 w-[280px] cursor-pointer group">
@@ -29,10 +31,10 @@ const ListingCardAirbnb = ({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
-        {/* Guest Favorite Badge */}
-        {isGuestFavorite && (
-          <div className="absolute top-3 left-3 bg-background/95 backdrop-blur-sm px-3 py-1.5 rounded-full">
-            <span className="text-sm font-medium text-foreground">Guest favorite</span>
+        {/* Verified Badge */}
+        {isVerified && (
+          <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
+            <span className="text-sm font-medium">Verified</span>
           </div>
         )}
         
@@ -50,15 +52,17 @@ const ListingCardAirbnb = ({
 
       {/* Content */}
       <div className="space-y-1">
-        <h3 className="font-semibold text-foreground line-clamp-2 leading-tight">
+        <h3 className="font-semibold text-foreground line-clamp-1 leading-tight">
           {title}
         </h3>
-        <div className="flex items-center gap-1">
-          <span className="text-foreground">${price} for {nights} nights</span>
-          <span className="text-muted-foreground">·</span>
-          <Star className="w-4 h-4 fill-foreground" />
-          <span className="text-foreground">{rating.toFixed(2)}</span>
+        <p className="text-muted-foreground text-sm line-clamp-2">{description}</p>
+        <div className="flex items-center gap-1 text-muted-foreground text-sm">
+          <MapPin className="w-3.5 h-3.5" />
+          <span className="line-clamp-1">{location}</span>
         </div>
+        <p className="text-foreground font-semibold">
+          ₦{price.toLocaleString()}<span className="font-normal text-muted-foreground">/{period}</span>
+        </p>
       </div>
     </div>
   );
