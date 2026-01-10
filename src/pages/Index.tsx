@@ -1,19 +1,24 @@
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import ListingsSection from "@/components/ListingsSection";
-import HowItWorks from "@/components/HowItWorks";
-import Footer from "@/components/Footer";
+import SearchBar from "@/components/SearchBar";
+import CategoryTabs from "@/components/CategoryTabs";
+import ListingsHome from "@/components/ListingsHome";
+import BottomNav from "@/components/BottomNav";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* Top Section */}
+      <div className="sticky top-0 z-40 bg-background">
+        <SearchBar />
+        <CategoryTabs />
+      </div>
+
+      {/* Main Content */}
       <main>
-        <Hero />
-        <ListingsSection />
-        <HowItWorks />
+        <ListingsHome />
       </main>
-      <Footer />
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };
