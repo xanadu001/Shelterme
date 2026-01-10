@@ -1,9 +1,10 @@
 import { useState } from "react";
 
 const categories = [
-  { id: "homes", label: "Homes" },
-  { id: "experiences", label: "Experiences" },
-  { id: "services", label: "Services" },
+  { id: "all", label: "All Listings" },
+  { id: "self-contain", label: "Self-Contain" },
+  { id: "shared", label: "Shared Rooms" },
+  { id: "flats", label: "Flats" },
 ];
 
 const CategoryTabs = () => {

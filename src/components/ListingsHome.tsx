@@ -8,17 +8,20 @@ import listing4 from "@/assets/listing-4.jpg";
 import listing5 from "@/assets/listing-5.jpg";
 import listing6 from "@/assets/listing-6.jpg";
 
+interface Listing {
+  id: number;
+  image: string;
+  title: string;
+  description: string;
+  location: string;
+  price: number;
+  period: string;
+  isVerified?: boolean;
+}
+
 interface ListingSectionProps {
   title: string;
-  listings: Array<{
-    id: number;
-    image: string;
-    title: string;
-    price: number;
-    nights: number;
-    rating: number;
-    isGuestFavorite?: boolean;
-  }>;
+  listings: Listing[];
 }
 
 const ListingSection = ({ title, listings }: ListingSectionProps) => {
@@ -40,10 +43,11 @@ const ListingSection = ({ title, listings }: ListingSectionProps) => {
               key={listing.id}
               image={listing.image}
               title={listing.title}
+              description={listing.description}
+              location={listing.location}
               price={listing.price}
-              nights={listing.nights}
-              rating={listing.rating}
-              isGuestFavorite={listing.isGuestFavorite}
+              period={listing.period}
+              isVerified={listing.isVerified}
             />
           ))}
         </div>
@@ -52,72 +56,111 @@ const ListingSection = ({ title, listings }: ListingSectionProps) => {
   );
 };
 
-const popularListings = [
+const uilagosListings: Listing[] = [
   {
     id: 1,
     image: listing1,
-    title: "Studio Near Boston University",
-    price: 245,
-    nights: 2,
-    rating: 4.93,
-    isGuestFavorite: true,
+    title: "Self-Contain near UNILAG Main Gate",
+    description: "Spacious self-contain with 24/7 power supply, water, and security",
+    location: "Akoka, Lagos",
+    price: 350000,
+    period: "year",
+    isVerified: true,
   },
   {
     id: 2,
     image: listing2,
-    title: "Apartment in Cambridge",
-    price: 283,
-    nights: 2,
-    rating: 4.99,
-    isGuestFavorite: true,
+    title: "Shared Room at Onike",
+    description: "Clean shared room for 2 students, close to campus shuttle",
+    location: "Onike, Yaba",
+    price: 120000,
+    period: "year",
+    isVerified: true,
   },
   {
     id: 3,
     image: listing3,
-    title: "Cozy Room in Somerville",
-    price: 156,
-    nights: 2,
-    rating: 4.87,
-    isGuestFavorite: false,
+    title: "Single Room Apartment",
+    description: "Furnished single room with kitchen and bathroom",
+    location: "Bariga, Lagos",
+    price: 280000,
+    period: "year",
+    isVerified: false,
   },
 ];
 
-const availableListings = [
+const uiListings: Listing[] = [
   {
     id: 4,
     image: listing4,
-    title: "Room Near Northeastern",
-    price: 89,
-    nights: 1,
-    rating: 4.92,
-    isGuestFavorite: true,
+    title: "Hostel Space at Bodija",
+    description: "Well-ventilated room in a secure hostel compound",
+    location: "Bodija, Ibadan",
+    price: 85000,
+    period: "year",
+    isVerified: true,
   },
   {
     id: 5,
     image: listing5,
-    title: "Apartment in Back Bay",
-    price: 312,
-    nights: 2,
-    rating: 4.95,
-    isGuestFavorite: false,
+    title: "Self-Contain near UI Gate",
+    description: "Modern self-contain with prepaid meter and borehole water",
+    location: "Agbowo, Ibadan",
+    price: 180000,
+    period: "year",
+    isVerified: false,
   },
   {
     id: 6,
     image: listing6,
-    title: "Budget Room in Brookline",
-    price: 67,
-    nights: 1,
-    rating: 4.78,
-    isGuestFavorite: true,
+    title: "Flat Share for Students",
+    description: "Shared 2-bedroom flat, perfect for final year students",
+    location: "Samonda, Ibadan",
+    price: 150000,
+    period: "year",
+    isVerified: true,
+  },
+];
+
+const aunListings: Listing[] = [
+  {
+    id: 7,
+    image: listing2,
+    title: "Off-Campus Apartment",
+    description: "Fully furnished apartment with AC and stable electricity",
+    location: "Near AUN Campus, Yola",
+    price: 400000,
+    period: "year",
+    isVerified: true,
+  },
+  {
+    id: 8,
+    image: listing4,
+    title: "Budget Single Room",
+    description: "Affordable single room with shared facilities",
+    location: "Jimeta, Yola",
+    price: 60000,
+    period: "year",
+    isVerified: false,
+  },
+  {
+    id: 9,
+    image: listing6,
+    title: "Studio Apartment",
+    description: "Compact studio with kitchenette, ideal for postgrad students",
+    location: "Near AUN, Yola",
+    price: 250000,
+    period: "year",
+    isVerified: true,
   },
 ];
 
 const ListingsHome = () => {
   return (
     <div className="pb-24">
-      <ListingSection title="Popular homes in Boston" listings={popularListings} />
-      <ListingSection title="Available this weekend" listings={availableListings} />
-      <ListingSection title="Top rated near you" listings={[...popularListings].reverse()} />
+      <ListingSection title="Near University of Lagos" listings={uilagosListings} />
+      <ListingSection title="Near University of Ibadan" listings={uiListings} />
+      <ListingSection title="Near American University of Nigeria" listings={aunListings} />
     </div>
   );
 };
