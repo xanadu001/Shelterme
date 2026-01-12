@@ -1,9 +1,8 @@
-import { Heart, MapPin } from "lucide-react";
+import { Heart } from "lucide-react";
 
 interface ListingCardAirbnbProps {
   image: string;
   title: string;
-  description: string;
   location: string;
   price: number;
   period: string;
@@ -14,7 +13,6 @@ interface ListingCardAirbnbProps {
 const ListingCardAirbnb = ({
   image,
   title,
-  description,
   location,
   price,
   period,
@@ -22,9 +20,9 @@ const ListingCardAirbnb = ({
   isVerified = false,
 }: ListingCardAirbnbProps) => {
   return (
-    <div className="flex-shrink-0 w-[280px] cursor-pointer group">
+    <div className="cursor-pointer group">
       {/* Image Container */}
-      <div className="relative aspect-square rounded-2xl overflow-hidden mb-3">
+      <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
         <img
           src={image}
           alt={title}
@@ -33,35 +31,37 @@ const ListingCardAirbnb = ({
         
         {/* Verified Badge */}
         {isVerified && (
-          <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
-            <span className="text-sm font-medium">Verified</span>
+          <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full">
+            <span className="text-xs font-medium">Verified</span>
           </div>
         )}
         
         {/* Heart Button */}
-        <button className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center">
+        <button 
+          className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Heart
-            className={`w-6 h-6 transition-colors ${
+            className={`w-5 h-5 transition-colors ${
               isFavorite
                 ? "fill-primary stroke-primary"
-                : "fill-black/50 stroke-white stroke-2 hover:fill-black/30"
+                : "fill-black/40 stroke-white stroke-2 hover:fill-black/20"
             }`}
           />
         </button>
       </div>
 
       {/* Content */}
-      <div className="space-y-1">
-        <h3 className="font-semibold text-foreground line-clamp-1 leading-tight">
-          {title}
-        </h3>
-        <p className="text-muted-foreground text-sm line-clamp-2">{description}</p>
-        <div className="flex items-center gap-1 text-muted-foreground text-sm">
-          <MapPin className="w-3.5 h-3.5" />
-          <span className="line-clamp-1">{location}</span>
+      <div className="space-y-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-foreground text-sm line-clamp-1">
+            {title}
+          </h3>
         </div>
-        <p className="text-foreground font-semibold">
-          ₦{price.toLocaleString()}<span className="font-normal text-muted-foreground">/{period}</span>
+        <p className="text-muted-foreground text-sm line-clamp-1">{location}</p>
+        <p className="text-foreground text-sm">
+          <span className="font-semibold">₦{price.toLocaleString()}</span>
+          <span className="text-muted-foreground">/{period}</span>
         </p>
       </div>
     </div>
