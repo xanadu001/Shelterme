@@ -1,6 +1,8 @@
 import { Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ListingCardAirbnbProps {
+  id: number;
   image: string;
   title: string;
   location: string;
@@ -11,6 +13,7 @@ interface ListingCardAirbnbProps {
 }
 
 const ListingCardAirbnb = ({
+  id,
   image,
   title,
   location,
@@ -19,8 +22,10 @@ const ListingCardAirbnb = ({
   isFavorite = false,
   isVerified = false,
 }: ListingCardAirbnbProps) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="cursor-pointer group">
+    <div className="cursor-pointer group" onClick={() => navigate(`/listing/${id}`)}>
       {/* Image Container */}
       <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
         <img
