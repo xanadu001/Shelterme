@@ -1,0 +1,419 @@
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, CreditCard, CheckCircle, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { getListingById } from "@/data/listings";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const NIGERIAN_UNIVERSITIES = [
+  "University of Lagos (UNILAG)",
+  "University of Ibadan (UI)",
+  "Obafemi Awolowo University (OAU)",
+  "University of Nigeria, Nsukka (UNN)",
+  "Ahmadu Bello University (ABU)",
+  "University of Benin (UNIBEN)",
+  "University of Ilorin (UNILORIN)",
+  "Lagos State University (LASU)",
+  "Covenant University",
+  "Babcock University",
+  "Other"
+];
+
+const SERVICE_FEE_PERCENT = 0.05;
+
+const BookingPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [step, setStep] = useState<"form" | "payment" | "confirmation">("form");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState({
+    studentName: "",
+    studentEmail: "",
+    studentPhone: "",
+    university: "",
+    moveInDate: ""
+  });
+
+  const listing = getListingById(Number(id));
+
+  if (!listing) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-foreground mb-2">Listing not found</h1>
+          <Button onClick={() => navigate("/")}>Go back home</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const rentAmount = listing.price;
+  const serviceFee = rentAmount * SERVICE_FEE_PERCENT;
+  const totalAmount = rentAmount + serviceFee;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.studentName || !formData.studentEmail || !formData.studentPhone || !formData.university || !formData.moveInDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .insert({
+          listing_id: listing.id,
+          student_name: formData.studentName,
+          student_email: formData.studentEmail,
+          student_phone: formData.studentPhone,
+          university: formData.university,
+          rent_amount: rentAmount,
+          service_fee: serviceFee,
+          total_amount: totalAmount,
+          move_in_date: formData.moveInDate,
+          payment_status: "pending"
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setBookingId(data.id);
+      setStep("payment");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create booking",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePaymentSubmitted = async (paymentReference: string) => {
+    if (!bookingId) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("bookings")
+        .update({
+          payment_status: "submitted",
+          payment_reference: paymentReference
+        })
+        .eq("id", bookingId);
+
+      if (error) throw error;
+
+      setStep("confirmation");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit payment",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-8">
+      {/* Header */}
+      <div className="sticky top-0 bg-background border-b border-border px-4 py-3 flex items-center gap-3 z-10">
+        <button
+          onClick={() => step === "form" ? navigate(-1) : setStep("form")}
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted"
+        >
+          <ArrowLeft className="w-5 h-5 text-foreground" />
+        </button>
+        <h1 className="text-lg font-semibold text-foreground">
+          {step === "form" && "Book Property"}
+          {step === "payment" && "Make Payment"}
+          {step === "confirmation" && "Booking Confirmed"}
+        </h1>
+      </div>
+
+      <div className="px-4 pt-4">
+        {/* Property Summary */}
+        <div className="bg-muted/50 rounded-xl p-4 mb-6">
+          <div className="flex gap-3">
+            <img
+              src={listing.images[0]}
+              alt={listing.title}
+              className="w-20 h-20 rounded-lg object-cover"
+            />
+            <div className="flex-1">
+              <h3 className="font-medium text-foreground">{listing.title}</h3>
+              <p className="text-sm text-muted-foreground">{listing.location}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Price Breakdown */}
+        <div className="bg-muted/30 rounded-xl p-4 mb-6 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Rent ({listing.period})</span>
+            <span className="text-foreground">₦{rentAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Service Fee (5%)</span>
+            <span className="text-foreground">₦{serviceFee.toLocaleString()}</span>
+          </div>
+          <div className="border-t border-border pt-2 flex justify-between font-semibold">
+            <span className="text-foreground">Total</span>
+            <span className="text-primary">₦{totalAmount.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Step Content */}
+        {step === "form" && (
+          <BookingForm
+            formData={formData}
+            onInputChange={handleInputChange}
+            onSubmit={handleFormSubmit}
+            isSubmitting={isSubmitting}
+          />
+        )}
+
+        {step === "payment" && (
+          <PaymentStep
+            totalAmount={totalAmount}
+            onPaymentSubmitted={handlePaymentSubmitted}
+            isSubmitting={isSubmitting}
+          />
+        )}
+
+        {step === "confirmation" && (
+          <ConfirmationStep
+            bookingId={bookingId!}
+            onGoHome={() => navigate("/")}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface BookingFormProps {
+  formData: {
+    studentName: string;
+    studentEmail: string;
+    studentPhone: string;
+    university: string;
+    moveInDate: string;
+  };
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  isSubmitting: boolean;
+}
+
+const BookingForm = ({ formData, onInputChange, onSubmit, isSubmitting }: BookingFormProps) => (
+  <form onSubmit={onSubmit} className="space-y-4">
+    <div>
+      <Label htmlFor="studentName">Full Name</Label>
+      <Input
+        id="studentName"
+        name="studentName"
+        value={formData.studentName}
+        onChange={onInputChange}
+        placeholder="Enter your full name"
+        required
+      />
+    </div>
+
+    <div>
+      <Label htmlFor="studentEmail">Email Address</Label>
+      <Input
+        id="studentEmail"
+        name="studentEmail"
+        type="email"
+        value={formData.studentEmail}
+        onChange={onInputChange}
+        placeholder="Enter your email"
+        required
+      />
+    </div>
+
+    <div>
+      <Label htmlFor="studentPhone">Phone Number</Label>
+      <Input
+        id="studentPhone"
+        name="studentPhone"
+        type="tel"
+        value={formData.studentPhone}
+        onChange={onInputChange}
+        placeholder="Enter your phone number"
+        required
+      />
+    </div>
+
+    <div>
+      <Label htmlFor="university">University</Label>
+      <select
+        id="university"
+        name="university"
+        value={formData.university}
+        onChange={onInputChange}
+        className="w-full h-10 px-3 rounded-md border border-input bg-background text-foreground text-sm"
+        required
+      >
+        <option value="">Select your university</option>
+        {NIGERIAN_UNIVERSITIES.map(uni => (
+          <option key={uni} value={uni}>{uni}</option>
+        ))}
+      </select>
+    </div>
+
+    <div>
+      <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
+      <Input
+        id="moveInDate"
+        name="moveInDate"
+        type="date"
+        value={formData.moveInDate}
+        onChange={onInputChange}
+        min={new Date().toISOString().split("T")[0]}
+        required
+      />
+    </div>
+
+    <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+      {isSubmitting ? "Processing..." : "Proceed to Payment"}
+    </Button>
+  </form>
+);
+
+interface PaymentStepProps {
+  totalAmount: number;
+  onPaymentSubmitted: (reference: string) => void;
+  isSubmitting: boolean;
+}
+
+const PaymentStep = ({ totalAmount, onPaymentSubmitted, isSubmitting }: PaymentStepProps) => {
+  const [paymentReference, setPaymentReference] = useState("");
+
+  return (
+    <div className="space-y-6">
+      {/* Bank Details */}
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="w-5 h-5 text-primary" />
+          <h3 className="font-semibold text-foreground">Bank Transfer Details</h3>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Bank Name</span>
+            <span className="text-sm font-medium text-foreground">First Bank Nigeria</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Account Number</span>
+            <span className="text-sm font-medium text-foreground font-mono">3087654321</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm text-muted-foreground">Account Name</span>
+            <span className="text-sm font-medium text-foreground">StudentHomes Nigeria Ltd</span>
+          </div>
+          <div className="flex justify-between border-t border-border pt-3">
+            <span className="text-sm font-medium text-foreground">Amount to Pay</span>
+            <span className="text-lg font-bold text-primary">₦{totalAmount.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div className="bg-muted/50 rounded-xl p-4">
+        <h4 className="font-medium text-foreground mb-2">Payment Instructions</h4>
+        <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+          <li>Transfer the exact amount shown above to the account</li>
+          <li>Use your email as the payment reference/narration</li>
+          <li>After payment, enter your transaction reference below</li>
+          <li>Your booking will be verified within 24-48 hours</li>
+        </ol>
+      </div>
+
+      {/* Payment Reference Input */}
+      <div>
+        <Label htmlFor="paymentReference">Transaction Reference / Receipt Number</Label>
+        <Input
+          id="paymentReference"
+          value={paymentReference}
+          onChange={(e) => setPaymentReference(e.target.value)}
+          placeholder="Enter your transaction reference"
+          className="mt-1"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          This is the reference number from your bank transfer receipt
+        </p>
+      </div>
+
+      <Button
+        onClick={() => onPaymentSubmitted(paymentReference)}
+        className="w-full"
+        size="lg"
+        disabled={!paymentReference || isSubmitting}
+      >
+        {isSubmitting ? "Submitting..." : "I Have Made Payment"}
+      </Button>
+    </div>
+  );
+};
+
+interface ConfirmationStepProps {
+  bookingId: string;
+  onGoHome: () => void;
+}
+
+const ConfirmationStep = ({ bookingId, onGoHome }: ConfirmationStepProps) => (
+  <div className="text-center space-y-6 py-8">
+    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+      <CheckCircle className="w-10 h-10 text-green-600" />
+    </div>
+
+    <div>
+      <h2 className="text-xl font-semibold text-foreground mb-2">Payment Submitted!</h2>
+      <p className="text-muted-foreground">
+        Your booking request has been received. We will verify your payment and get back to you shortly.
+      </p>
+    </div>
+
+    <div className="bg-muted/50 rounded-xl p-4 inline-block">
+      <p className="text-sm text-muted-foreground mb-1">Booking Reference</p>
+      <p className="font-mono font-semibold text-foreground">{bookingId.slice(0, 8).toUpperCase()}</p>
+    </div>
+
+    <div className="flex items-center justify-center gap-2 text-amber-600 bg-amber-50 rounded-lg p-3">
+      <Clock className="w-5 h-5" />
+      <span className="text-sm font-medium">Verification typically takes 24-48 hours</span>
+    </div>
+
+    <Button onClick={onGoHome} variant="outline" size="lg" className="w-full">
+      Back to Home
+    </Button>
+  </div>
+);
+
+export default BookingPage;

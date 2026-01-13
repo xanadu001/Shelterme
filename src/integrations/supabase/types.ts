@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          created_at: string
+          id: string
+          listing_id: number
+          move_in_date: string
+          payment_reference: string | null
+          payment_status: string
+          rent_amount: number
+          service_fee: number
+          student_email: string
+          student_name: string
+          student_phone: string
+          total_amount: number
+          university: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          listing_id: number
+          move_in_date: string
+          payment_reference?: string | null
+          payment_status?: string
+          rent_amount: number
+          service_fee: number
+          student_email: string
+          student_name: string
+          student_phone: string
+          total_amount: number
+          university: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          listing_id?: number
+          move_in_date?: string
+          payment_reference?: string | null
+          payment_status?: string
+          rent_amount?: number
+          service_fee?: number
+          student_email?: string
+          student_name?: string
+          student_phone?: string
+          total_amount?: number
+          university?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
