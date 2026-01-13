@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, CheckCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,22 +7,16 @@ import { Label } from "@/components/ui/label";
 import { getListingById } from "@/data/listings";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
-const NIGERIAN_UNIVERSITIES = [
-  "University of Lagos (UNILAG)",
-  "University of Ibadan (UI)",
-  "Obafemi Awolowo University (OAU)",
-  "University of Nigeria, Nsukka (UNN)",
-  "Ahmadu Bello University (ABU)",
-  "University of Benin (UNIBEN)",
-  "University of Ilorin (UNILORIN)",
-  "Lagos State University (LASU)",
-  "Covenant University",
-  "Babcock University",
-  "Other"
-];
+import { User, Session } from "@supabase/supabase-js";
 
 const SERVICE_FEE_PERCENT = 0.05;
+
+interface Profile {
+  full_name: string;
+  email: string;
+  phone: string;
+  university: string;
+}
 
 const BookingPage = () => {
   const { id } = useParams();
@@ -31,16 +25,59 @@ const BookingPage = () => {
   const [step, setStep] = useState<"form" | "payment" | "confirmation">("form");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    studentName: "",
-    studentEmail: "",
-    studentPhone: "",
-    university: "",
     moveInDate: ""
   });
 
   const listing = getListingById(Number(id));
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (!session?.user) {
+          navigate("/auth");
+        } else {
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
+        }
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (!session?.user) {
+        navigate("/auth");
+      } else {
+        fetchProfile(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name, email, phone, university")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setProfile(data);
+    }
+    setIsLoading(false);
+  };
 
   if (!listing) {
     return (
@@ -48,6 +85,16 @@ const BookingPage = () => {
         <div className="text-center">
           <h1 className="text-xl font-semibold text-foreground mb-2">Listing not found</h1>
           <Button onClick={() => navigate("/")}>Go back home</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -67,10 +114,10 @@ const BookingPage = () => {
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.studentName || !formData.studentEmail || !formData.studentPhone || !formData.university || !formData.moveInDate) {
+    if (!profile || !formData.moveInDate) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please select a move-in date",
         variant: "destructive"
       });
       return;
@@ -83,10 +130,10 @@ const BookingPage = () => {
         .from("bookings")
         .insert({
           listing_id: listing.id,
-          student_name: formData.studentName,
-          student_email: formData.studentEmail,
-          student_phone: formData.studentPhone,
-          university: formData.university,
+          student_name: profile.full_name,
+          student_email: profile.email,
+          student_phone: profile.phone,
+          university: profile.university,
           rent_amount: rentAmount,
           service_fee: serviceFee,
           total_amount: totalAmount,
@@ -189,10 +236,11 @@ const BookingPage = () => {
         </div>
 
         {/* Step Content */}
-        {step === "form" && (
+        {step === "form" && profile && (
           <BookingForm
-            formData={formData}
-            onInputChange={handleInputChange}
+            profile={profile}
+            moveInDate={formData.moveInDate}
+            onMoveInDateChange={handleInputChange}
             onSubmit={handleFormSubmit}
             isSubmitting={isSubmitting}
           />
@@ -218,73 +266,36 @@ const BookingPage = () => {
 };
 
 interface BookingFormProps {
-  formData: {
-    studentName: string;
-    studentEmail: string;
-    studentPhone: string;
-    university: string;
-    moveInDate: string;
-  };
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  profile: Profile;
+  moveInDate: string;
+  onMoveInDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   isSubmitting: boolean;
 }
 
-const BookingForm = ({ formData, onInputChange, onSubmit, isSubmitting }: BookingFormProps) => (
+const BookingForm = ({ profile, moveInDate, onMoveInDateChange, onSubmit, isSubmitting }: BookingFormProps) => (
   <form onSubmit={onSubmit} className="space-y-4">
-    <div>
-      <Label htmlFor="studentName">Full Name</Label>
-      <Input
-        id="studentName"
-        name="studentName"
-        value={formData.studentName}
-        onChange={onInputChange}
-        placeholder="Enter your full name"
-        required
-      />
-    </div>
-
-    <div>
-      <Label htmlFor="studentEmail">Email Address</Label>
-      <Input
-        id="studentEmail"
-        name="studentEmail"
-        type="email"
-        value={formData.studentEmail}
-        onChange={onInputChange}
-        placeholder="Enter your email"
-        required
-      />
-    </div>
-
-    <div>
-      <Label htmlFor="studentPhone">Phone Number</Label>
-      <Input
-        id="studentPhone"
-        name="studentPhone"
-        type="tel"
-        value={formData.studentPhone}
-        onChange={onInputChange}
-        placeholder="Enter your phone number"
-        required
-      />
-    </div>
-
-    <div>
-      <Label htmlFor="university">University</Label>
-      <select
-        id="university"
-        name="university"
-        value={formData.university}
-        onChange={onInputChange}
-        className="w-full h-10 px-3 rounded-md border border-input bg-background text-foreground text-sm"
-        required
-      >
-        <option value="">Select your university</option>
-        {NIGERIAN_UNIVERSITIES.map(uni => (
-          <option key={uni} value={uni}>{uni}</option>
-        ))}
-      </select>
+    {/* User Info Summary (Read-only) */}
+    <div className="bg-muted/50 rounded-xl p-4 space-y-3">
+      <h3 className="font-medium text-foreground mb-2">Your Details</h3>
+      <div className="grid gap-2 text-sm">
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Name</span>
+          <span className="text-foreground font-medium">{profile.full_name}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Email</span>
+          <span className="text-foreground font-medium">{profile.email}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Phone</span>
+          <span className="text-foreground font-medium">{profile.phone}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">University</span>
+          <span className="text-foreground font-medium">{profile.university}</span>
+        </div>
+      </div>
     </div>
 
     <div>
@@ -293,8 +304,8 @@ const BookingForm = ({ formData, onInputChange, onSubmit, isSubmitting }: Bookin
         id="moveInDate"
         name="moveInDate"
         type="date"
-        value={formData.moveInDate}
-        onChange={onInputChange}
+        value={moveInDate}
+        onChange={onMoveInDateChange}
         min={new Date().toISOString().split("T")[0]}
         required
       />
