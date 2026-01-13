@@ -162,7 +162,7 @@ const ListingDetail = () => {
               <span className="text-sm font-normal text-muted-foreground">/{listing.period}</span>
             </p>
           </div>
-          <Button size="lg">Book Viewing</Button>
+          <Button size="lg" onClick={() => navigate(`/booking/${id}`)}>Book Now</Button>
         </div>
       </div>
     </div>
