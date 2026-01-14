@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 interface ListingCardAirbnbProps {
   id: number;
@@ -9,7 +10,7 @@ interface ListingCardAirbnbProps {
   price: number;
   period: string;
   isFavorite?: boolean;
-  isVerified?: boolean;
+  isAvailable?: boolean;
 }
 
 const ListingCardAirbnb = ({
@@ -20,9 +21,30 @@ const ListingCardAirbnb = ({
   price,
   period,
   isFavorite = false,
-  isVerified = false,
+  isAvailable = false,
 }: ListingCardAirbnbProps) => {
   const navigate = useNavigate();
+  const [isWishlisted, setIsWishlisted] = useState(isFavorite);
+
+  useEffect(() => {
+    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    setIsWishlisted(wishlist.includes(id));
+  }, [id]);
+
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    
+    if (isWishlisted) {
+      const updated = wishlist.filter((itemId: number) => itemId !== id);
+      localStorage.setItem("wishlist", JSON.stringify(updated));
+      setIsWishlisted(false);
+    } else {
+      wishlist.push(id);
+      localStorage.setItem("wishlist", JSON.stringify(wishlist));
+      setIsWishlisted(true);
+    }
+  };
 
   return (
     <div className="cursor-pointer group" onClick={() => navigate(`/listing/${id}`)}>
@@ -34,21 +56,21 @@ const ListingCardAirbnb = ({
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         
-        {/* Verified Badge */}
-        {isVerified && (
+        {/* Available Badge */}
+        {isAvailable && (
           <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full">
-            <span className="text-xs font-medium">Verified</span>
+            <span className="text-xs font-medium">Available</span>
           </div>
         )}
         
         {/* Heart Button */}
         <button 
           className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
+          onClick={toggleWishlist}
         >
           <Heart
             className={`w-5 h-5 transition-colors ${
-              isFavorite
+              isWishlisted
                 ? "fill-primary stroke-primary"
                 : "fill-black/40 stroke-white stroke-2 hover:fill-black/20"
             }`}

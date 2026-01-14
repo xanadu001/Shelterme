@@ -14,7 +14,7 @@ const ListingsHome = () => {
             location={listing.location}
             price={listing.price}
             period={listing.period}
-            isVerified={listing.isVerified}
+            isAvailable={listing.isVerified}
           />
         ))}
       </div>
