@@ -5,8 +5,8 @@ interface ListingsHomeProps {
   listings: Listing[];
 }
 
-const ListingsHome = ({ listings }: ListingsHomeProps) => {
-  if (listings.length === 0) {
+const ListingsHome = ({ listings = [] }: ListingsHomeProps) => {
+  if (!listings || listings.length === 0) {
     return (
       <div className="px-4 pb-24 pt-2">
         <div className="flex flex-col items-center justify-center py-16 text-center">
