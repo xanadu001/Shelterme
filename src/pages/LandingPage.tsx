@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Search, Shield, Star, Home, MapPin, Users, CheckCircle } from "lucide-react";
+import { ArrowRight, Search, Shield, Star, Home, MapPin, Users, Building2 } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const LandingPage = () => {
@@ -269,12 +269,39 @@ const LandingPage = () => {
             <Button
               size="xl"
               variant="outline"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/dashboard")}
               className="border-white/50 text-primary-foreground hover:bg-white/10"
             >
-              Create Account
+              <Building2 className="w-5 h-5 mr-2" />
+              List Your Property
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* For Landlords Section */}
+      <section className="py-20 px-6 bg-muted/50">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
+            <Building2 className="w-4 h-4" />
+            <span className="text-sm font-medium">For Property Owners</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+            Are You a Landlord or Agent?
+          </h2>
+          <p className="text-muted-foreground mb-10 text-lg max-w-2xl mx-auto">
+            List your properties for free and reach thousands of students looking for accommodation. 
+            Manage bookings, track views, and grow your rental business.
+          </p>
+          <Button
+            size="xl"
+            onClick={() => navigate("/dashboard")}
+            className="gap-2"
+          >
+            <Building2 className="w-5 h-5" />
+            Start Listing Properties
+            <ArrowRight className="w-5 h-5" />
+          </Button>
         </div>
       </section>
 
@@ -291,6 +318,9 @@ const LandingPage = () => {
               <a href="#" className="hover:text-primary transition-colors">Contact</a>
               <a href="#" className="hover:text-primary transition-colors">Privacy</a>
               <a href="#" className="hover:text-primary transition-colors">Terms</a>
+              <button onClick={() => navigate("/dashboard")} className="hover:text-primary transition-colors">
+                List Property
+              </button>
             </div>
             <div className="text-sm text-background/50">
               © 2025 StudentStay. All rights reserved.
