@@ -53,7 +53,7 @@ const BottomNav = () => {
     } else if (id === "wishlists") {
       navigate("/wishlists");
     } else if (id === "explore") {
-      navigate("/explore");
+      navigate("/");
     }
   };
 
