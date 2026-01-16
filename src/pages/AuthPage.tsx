@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Eye, EyeOff, Home, Shield, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,8 +38,12 @@ const loginSchema = z.object({
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const isLandlordFlow = roleParam === "landlord" || roleParam === "agent";
+  
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(!roleParam);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -216,13 +220,25 @@ const AuthPage = () => {
           <div className="space-y-8">
             <div>
               <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
-                Find Your Perfect
-                <br />
-                Student Home
+                {isLandlordFlow ? (
+                  <>
+                    List Your
+                    <br />
+                    Properties
+                  </>
+                ) : (
+                  <>
+                    Find Your Perfect
+                    <br />
+                    Student Home
+                  </>
+                )}
               </h1>
               <p className="text-lg text-white/90 max-w-md">
-                Discover verified, affordable accommodations near your campus. 
-                Join thousands of students who've found their ideal living space.
+                {isLandlordFlow 
+                  ? "Reach thousands of students looking for accommodation. Manage your properties and grow your rental business."
+                  : "Discover verified, affordable accommodations near your campus. Join thousands of students who've found their ideal living space."
+                }
               </p>
             </div>
 
@@ -289,12 +305,14 @@ const AuthPage = () => {
                 <span className="text-xl font-bold text-foreground">StudentHomes</span>
               </div>
               <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-                {isLogin ? "Welcome back" : "Create your account"}
+                {isLogin ? "Welcome back" : isLandlordFlow ? "Create landlord account" : "Create your account"}
               </h2>
               <p className="text-muted-foreground">
                 {isLogin
                   ? "Enter your credentials to access your account"
-                  : "Join our community of students finding their perfect home"
+                  : isLandlordFlow 
+                    ? "Join our platform and start listing your properties"
+                    : "Join our community of students finding their perfect home"
                 }
               </p>
             </div>
