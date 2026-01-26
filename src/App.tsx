@@ -10,6 +10,8 @@ import BookingPage from "./pages/BookingPage";
 import AuthPage from "./pages/AuthPage";
 import WishlistPage from "./pages/WishlistPage";
 import DashboardPage from "./pages/DashboardPage";
+import StudentDashboard from "./pages/StudentDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/wishlists" element={<WishlistPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/profile" element={<ProfilePage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

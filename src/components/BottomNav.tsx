@@ -51,12 +51,26 @@ const BottomNav = () => {
   const getActiveTab = () => {
     if (location.pathname === "/explore" || location.pathname.startsWith("/listing")) return "explore";
     if (location.pathname === "/wishlists") return "wishlists";
-    if (location.pathname === "/dashboard") return "dashboard";
+    if (location.pathname === "/dashboard" || location.pathname === "/student-dashboard" || location.pathname === "/admin-dashboard") return "dashboard";
     if (location.pathname === "/profile") return "profile";
     return "explore";
   };
 
   const activeTab = getActiveTab();
+
+  const getDashboardRoute = () => {
+    switch (userRole) {
+      case "student":
+        return "/student-dashboard";
+      case "landlord":
+      case "agent":
+        return "/dashboard";
+      case "admin":
+        return "/admin-dashboard";
+      default:
+        return "/explore";
+    }
+  };
 
   const handleNavClick = (id: string) => {
     if (id === "login") {
@@ -66,20 +80,20 @@ const BottomNav = () => {
     } else if (id === "explore") {
       navigate("/explore");
     } else if (id === "dashboard") {
-      navigate("/dashboard");
+      navigate(getDashboardRoute());
     } else if (id === "profile") {
       navigate("/profile");
     }
   };
 
-  // Show dashboard option for landlords/agents
-  const isLandlordOrAgent = userRole === "landlord" || userRole === "agent";
+  // Show dashboard for all logged-in users
+  const showDashboard = userRole !== null;
 
   const navItems = user
     ? [
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
-        ...(isLandlordOrAgent ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
+        ...(showDashboard ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
         { id: "profile", icon: User, label: "Profile" },
       ]
     : [

@@ -108,7 +108,8 @@ const AuthPage = () => {
         .maybeSingle();
 
       if (roleData?.role) {
-        switch (roleData.role) {
+        const role = roleData.role as string;
+        switch (role) {
           case "student":
             navigate("/student-dashboard");
             break;
