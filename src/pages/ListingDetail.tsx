@@ -27,7 +27,7 @@ const ListingDetail = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Image Gallery */}
       <div className="relative">
-        <div className="aspect-[4/3] overflow-hidden">
+        <div className="aspect-[16/9] overflow-hidden">
           <img
             src={listing.images[currentImageIndex]}
             alt={listing.title}
