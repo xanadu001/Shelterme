@@ -65,7 +65,7 @@ const ListingDetail = () => {
 
       {/* Airbnb-style Image Gallery */}
       <div className="px-4">
-        <div className="grid grid-cols-4 gap-2 rounded-xl overflow-hidden h-[280px] md:h-[400px]">
+        <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-xl overflow-hidden h-[280px] md:h-[400px]">
           {/* Main large image - takes 2 columns and full height */}
           <div 
             className="col-span-2 row-span-2 relative cursor-pointer group"
