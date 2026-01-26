@@ -1,159 +1,173 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, Building2, ArrowRight, Home, Shield, Users } from "lucide-react";
+import { GraduationCap, Building2, Shield, Home, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+const NIGERIAN_UNIVERSITIES = [
+  "University of Lagos (UNILAG)",
+  "University of Ibadan (UI)",
+  "Obafemi Awolowo University (OAU)",
+  "University of Nigeria, Nsukka (UNN)",
+  "Ahmadu Bello University (ABU)",
+  "University of Benin (UNIBEN)",
+  "University of Ilorin (UNILORIN)",
+  "Lagos State University (LASU)",
+  "Covenant University",
+  "Babcock University",
+  "Other"
+];
+
+type UserRole = "student" | "landlord" | "admin";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<UserRole>("student");
+  const [selectedUniversity, setSelectedUniversity] = useState("");
+
+  const handleCreateAccount = () => {
+    const params = new URLSearchParams();
+    params.set("role", selectedRole);
+    if (selectedUniversity) {
+      params.set("university", selectedUniversity);
+    }
+    navigate(`/auth?${params.toString()}`);
+  };
+
+  const handleLogin = () => {
+    navigate("/auth");
+  };
+
+  const roles = [
+    {
+      id: "student" as UserRole,
+      icon: GraduationCap,
+      title: "I am a Student",
+      description: "Looking for a place to stay"
+    },
+    {
+      id: "landlord" as UserRole,
+      icon: Building2,
+      title: "I am a Landlord/Agent",
+      description: "Listing properties for students"
+    },
+    {
+      id: "admin" as UserRole,
+      icon: Shield,
+      title: "I am an Admin",
+      description: "Managing platform operations"
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
-      </div>
-
-      {/* Header */}
-      <header className="relative z-10 px-6 py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary-foreground" />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Home className="w-8 h-8 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">ShelterMe</span>
-          </div>
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/auth")}
-            className="text-foreground hover:bg-primary/10"
-          >
-            Sign In
-          </Button>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="relative z-10 px-6 py-12 md:py-20">
-        <div className="max-w-7xl mx-auto">
-          {/* Hero text */}
-          <div className="text-center mb-16 md:mb-20">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Find Your Perfect
-              <span className="text-primary block">Student Home</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connect students with verified landlords and agents. Safe, affordable, 
-              and convenient housing near your university.
+            <h1 className="text-2xl font-bold text-foreground">shelterMe</h1>
+            <p className="text-sm text-muted-foreground text-center mt-1">
+              Find your perfect home near campus in Nigeria.
             </p>
           </div>
 
-          {/* Glassmorphism Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Student Card */}
-            <div 
-              onClick={() => navigate("/auth?role=student")}
-              className="group cursor-pointer"
-            >
-              <div className="relative backdrop-blur-xl bg-white/30 dark:bg-white/10 border border-white/40 dark:border-white/20 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                {/* Glass reflection effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-60 pointer-events-none" />
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/30 rounded-full blur-2xl group-hover:bg-primary/40 transition-colors duration-500" />
-                
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-primary/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <GraduationCap className="w-8 h-8 text-primary" />
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold text-foreground mb-3">
-                    I'm a Student
-                  </h2>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    Browse verified properties near your university. Find safe, affordable 
-                    accommodation with transparent pricing and trusted landlords.
-                  </p>
-                  
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-center gap-3 text-sm text-foreground/80">
-                      <Shield className="w-4 h-4 text-primary" />
-                      <span>Verified properties only</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-foreground/80">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span>Direct landlord contact</span>
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl py-6 text-base font-semibold group-hover:shadow-lg transition-all duration-300">
-                    Find a Home
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+          {/* Role Selection */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-foreground mb-1">
+              Tell us who you are
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Choose a role to personalize your experience.
+            </p>
 
-            {/* Landlord/Agent Card */}
-            <div 
-              onClick={() => navigate("/auth?role=landlord")}
-              className="group cursor-pointer"
-            >
-              <div className="relative backdrop-blur-xl bg-white/30 dark:bg-white/10 border border-white/40 dark:border-white/20 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden">
-                {/* Glass reflection effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-60 pointer-events-none" />
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/30 rounded-full blur-2xl group-hover:bg-primary/40 transition-colors duration-500" />
+            <div className="space-y-3">
+              {roles.map((role) => {
+                const Icon = role.icon;
+                const isSelected = selectedRole === role.id;
                 
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-primary/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Building2 className="w-8 h-8 text-primary" />
-                  </div>
-                  
-                  <h2 className="text-2xl font-bold text-foreground mb-3">
-                    I'm a Landlord / Agent
-                  </h2>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    List your properties and reach thousands of students. 
-                    Manage bookings, inquiries, and grow your rental business.
-                  </p>
-                  
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-center gap-3 text-sm text-foreground/80">
-                      <Shield className="w-4 h-4 text-primary" />
-                      <span>Get verified status</span>
+                return (
+                  <button
+                    key={role.id}
+                    onClick={() => setSelectedRole(role.id)}
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                      isSelected
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-background hover:border-primary/50 hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      isSelected ? "bg-primary/10" : "bg-muted"
+                    }`}>
+                      <Icon className={`w-5 h-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-foreground/80">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span>Reach more students</span>
+                    <div className="flex-1">
+                      <p className={`font-medium ${isSelected ? "text-foreground" : "text-foreground"}`}>
+                        {role.title}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {role.description}
+                      </p>
                     </div>
-                  </div>
-                  
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl py-6 text-base font-semibold group-hover:shadow-lg transition-all duration-300">
-                    List Property
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-              </div>
+                    {isSelected && (
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Browse link */}
-          <div className="text-center mt-12">
-            <button 
-              onClick={() => navigate("/")}
-              className="text-primary hover:text-primary/80 font-medium inline-flex items-center gap-2 transition-colors"
+          {/* University Selection */}
+          <div className="mb-8">
+            <label className="text-sm font-medium text-foreground mb-2 block">
+              Select Your University
+            </label>
+            <select
+              value={selectedUniversity}
+              onChange={(e) => setSelectedUniversity(e.target.value)}
+              className="w-full h-12 px-4 rounded-xl border border-input bg-background text-foreground text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none cursor-pointer"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 12px center",
+                backgroundSize: "20px"
+              }}
             >
-              Or browse properties without signing up
-              <ArrowRight className="w-4 h-4" />
+              <option value="">Search for your institution...</option>
+              {NIGERIAN_UNIVERSITIES.map((uni) => (
+                <option key={uni} value={uni}>{uni}</option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground mt-2">
+              We'll use this to find hostels within walking distance of your campus.
+            </p>
+          </div>
+
+          {/* Create Account Button */}
+          <Button
+            onClick={handleCreateAccount}
+            className="w-full h-12 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+          >
+            Create My Account
+          </Button>
+
+          {/* Login Link */}
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Already have an account?{" "}
+            <button
+              onClick={handleLogin}
+              className="text-primary font-medium hover:underline"
+            >
+              Log In
             </button>
-          </div>
+          </p>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="relative z-10 px-6 py-8 mt-auto">
-        <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-          © 2024 ShelterMe. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };
