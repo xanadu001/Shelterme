@@ -41,26 +41,17 @@ const landlordSignUpSchema = z.object({
   university: z.string().min(1, "Please select your area of operation")
 });
 
-// Schema for admin signup
-const adminSignUpSchema = z.object({
-  email: z.string().trim().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
-  phone: z.string().trim().min(10, "Please enter a valid phone number"),
-  adminCode: z.string().min(1, "Admin code is required")
-});
-
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required")
 });
 
-type UserRole = "student" | "landlord" | "admin";
+type UserRole = "student" | "landlord";
 
 const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roleParam = (searchParams.get("role") as UserRole) || "student";
+  const roleParam = (searchParams.get("role") === "landlord" ? "landlord" : "student") as UserRole;
   const universityParam = searchParams.get("university");
   
   const { toast } = useToast();
@@ -76,8 +67,7 @@ const AuthPage = () => {
     fullName: "",
     phone: "",
     university: universityParam || "",
-    companyName: "",
-    adminCode: ""
+    companyName: ""
   });
 
   useEffect(() => {
@@ -144,19 +134,7 @@ const AuthPage = () => {
     if (isLogin) {
       schema = loginSchema;
     } else {
-      switch (selectedRole) {
-        case "student":
-          schema = studentSignUpSchema;
-          break;
-        case "landlord":
-          schema = landlordSignUpSchema;
-          break;
-        case "admin":
-          schema = adminSignUpSchema;
-          break;
-        default:
-          schema = studentSignUpSchema;
-      }
+      schema = selectedRole === "landlord" ? landlordSignUpSchema : studentSignUpSchema;
     }
 
     const result = schema.safeParse(formData);
@@ -211,16 +189,6 @@ const AuthPage = () => {
 
         // Redirect will happen via onAuthStateChange
       } else {
-        // Validate admin code if admin
-        if (selectedRole === "admin" && formData.adminCode !== "ADMIN2024") {
-          toast({
-            title: "Invalid Admin Code",
-            description: "Please enter a valid admin authorization code.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-          return;
-        }
 
         const redirectUrl = `${window.location.origin}/`;
 
@@ -300,16 +268,7 @@ const AuthPage = () => {
   };
 
   const getRoleTitle = () => {
-    switch (selectedRole) {
-      case "student":
-        return "Student Account";
-      case "landlord":
-        return "Landlord/Agent Account";
-      case "admin":
-        return "Admin Account";
-      default:
-        return "Account";
-    }
+    return selectedRole === "landlord" ? "Landlord/Agent Account" : "Student Account";
   };
 
   return (
@@ -337,13 +296,9 @@ const AuthPage = () => {
             <p className="text-sm text-muted-foreground text-center mt-1">
               {isLogin ? "Welcome back!" : `Create your ${getRoleTitle()}`}
             </p>
-            {!isLogin && selectedRole !== "student" && (
-              <span className={`mt-2 text-xs px-3 py-1 rounded-full ${
-                selectedRole === "admin" 
-                  ? "bg-purple-100 text-purple-700" 
-                  : "bg-blue-100 text-blue-700"
-              }`}>
-                {selectedRole === "admin" ? "Admin Registration" : "Property Manager"}
+            {!isLogin && selectedRole === "landlord" && (
+              <span className="mt-2 text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+                Property Manager
               </span>
             )}
           </div>
@@ -406,26 +361,6 @@ const AuthPage = () => {
                   </div>
                 )}
 
-                {/* Admin Code - Only for Admins */}
-                {selectedRole === "admin" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="adminCode" className="text-sm font-medium">
-                      Admin Authorization Code
-                    </Label>
-                    <Input
-                      id="adminCode"
-                      name="adminCode"
-                      type="password"
-                      value={formData.adminCode}
-                      onChange={handleInputChange}
-                      placeholder="Enter admin code"
-                      className={`h-12 rounded-xl ${errors.adminCode ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {errors.adminCode && (
-                      <p className="text-xs text-destructive">{errors.adminCode}</p>
-                    )}
-                  </div>
-                )}
 
                 {/* University / Area */}
                 <div className="space-y-2">
