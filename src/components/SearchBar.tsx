@@ -1,21 +1,47 @@
+import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 interface SearchBarProps {
   onFilterClick: () => void;
   activeFilterCount?: number;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-const SearchBar = ({ onFilterClick, activeFilterCount = 0 }: SearchBarProps) => {
+const SearchBar = ({ 
+  onFilterClick, 
+  activeFilterCount = 0,
+  searchQuery = "",
+  onSearchChange
+}: SearchBarProps) => {
+  const [localQuery, setLocalQuery] = useState(searchQuery);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setLocalQuery(value);
+    onSearchChange?.(value);
+  };
+
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 py-3">
+      {/* Platform Name */}
+      <h1 className="text-xl font-bold text-primary mb-3 text-center">
+        UniHostel
+      </h1>
+      
+      {/* Search Bar */}
       <div className="w-full flex items-center gap-3 bg-background border border-border rounded-full px-4 py-2.5 shadow-sm">
-        <Search className="w-4 h-4 text-muted-foreground" />
-        <span className="flex-1 text-left text-muted-foreground text-sm">
-          Self-contain, shared room, flat...
-        </span>
+        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <input
+          type="text"
+          value={localQuery}
+          onChange={handleInputChange}
+          placeholder="Search by location, title..."
+          className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
         <button
           onClick={onFilterClick}
-          className="relative w-8 h-8 border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+          className="relative w-8 h-8 border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0"
         >
           <SlidersHorizontal className="w-4 h-4 text-foreground" />
           {activeFilterCount > 0 && (
