@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListingById } from "@/data/listings";
 import { useState } from "react";
@@ -7,8 +7,8 @@ import { useState } from "react";
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
 
   const listing = getListingById(Number(id));
 
@@ -23,83 +23,164 @@ const ListingDetail = () => {
     );
   }
 
+  // Get up to 5 images for the gallery
+  const galleryImages = listing.images.slice(0, 5);
+  const hasMorePhotos = listing.images.length > 5;
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Image Gallery */}
-      <div className="relative">
-        <div className="aspect-[21/9] overflow-hidden">
-          <img
-            src={listing.images[currentImageIndex]}
-            alt={listing.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        {/* Navigation Buttons */}
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-9 h-9 bg-background rounded-full flex items-center justify-center shadow-md"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
-
-        <div className="absolute top-4 right-4 flex gap-2">
-          <button
-            onClick={() => setIsFavorite(!isFavorite)}
-            className="w-9 h-9 bg-background rounded-full flex items-center justify-center shadow-md"
-          >
-            <Heart
-              className={`w-5 h-5 ${
-                isFavorite ? "fill-primary stroke-primary" : "text-foreground"
-              }`}
-            />
-          </button>
-          <button className="w-9 h-9 bg-background rounded-full flex items-center justify-center shadow-md">
-            <Share className="w-5 h-5 text-foreground" />
-          </button>
-        </div>
-
-        {/* Image Indicators */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {listing.images.map((_, index) => (
+      {/* Header with Title and Actions */}
+      <div className="px-4 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
             <button
-              key={index}
-              onClick={() => setCurrentImageIndex(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentImageIndex ? "bg-white" : "bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Verified Badge */}
-        {listing.isVerified && (
-          <div className="absolute bottom-4 left-4 bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
-            <span className="text-sm font-medium">Verified</span>
+              onClick={() => navigate(-1)}
+              className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground line-clamp-2">
+              {listing.title}
+            </h1>
           </div>
-        )}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-muted transition-colors">
+              <Share className="w-4 h-4 text-foreground" />
+              <span className="text-sm font-medium text-foreground underline hidden sm:inline">Share</span>
+            </button>
+            <button
+              onClick={() => setIsFavorite(!isFavorite)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+            >
+              <Heart
+                className={`w-4 h-4 ${
+                  isFavorite ? "fill-primary stroke-primary" : "text-foreground"
+                }`}
+              />
+              <span className="text-sm font-medium text-foreground underline hidden sm:inline">Save</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Thumbnail Gallery */}
-      {listing.images.length > 1 && (
-        <div className="px-4 py-3">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {listing.images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentImageIndex(index)}
-                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                  index === currentImageIndex 
-                    ? "border-primary ring-2 ring-primary/20" 
-                    : "border-transparent opacity-70 hover:opacity-100"
-                }`}
+      {/* Airbnb-style Image Gallery */}
+      <div className="px-4">
+        <div className="grid grid-cols-4 gap-2 rounded-xl overflow-hidden h-[280px] md:h-[400px]">
+          {/* Main large image - takes 2 columns and full height */}
+          <div 
+            className="col-span-2 row-span-2 relative cursor-pointer group"
+            onClick={() => setShowAllPhotos(true)}
+          >
+            <img
+              src={galleryImages[0]}
+              alt={listing.title}
+              className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+            />
+            {listing.isVerified && (
+              <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-2.5 py-1 rounded-full">
+                <span className="text-xs font-medium">Verified</span>
+              </div>
+            )}
+          </div>
+
+          {/* Top right images */}
+          {galleryImages[1] && (
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowAllPhotos(true)}
+            >
+              <img
+                src={galleryImages[1]}
+                alt={`${listing.title} - 2`}
+                className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+              />
+            </div>
+          )}
+          {galleryImages[2] && (
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowAllPhotos(true)}
+            >
+              <img
+                src={galleryImages[2]}
+                alt={`${listing.title} - 3`}
+                className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+              />
+            </div>
+          )}
+
+          {/* Bottom right images */}
+          {galleryImages[3] && (
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowAllPhotos(true)}
+            >
+              <img
+                src={galleryImages[3]}
+                alt={`${listing.title} - 4`}
+                className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+              />
+            </div>
+          )}
+          {galleryImages[4] ? (
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowAllPhotos(true)}
+            >
+              <img
+                src={galleryImages[4]}
+                alt={`${listing.title} - 5`}
+                className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+              />
+              {/* Show all photos button */}
+              <button 
+                className="absolute bottom-3 right-3 bg-background text-foreground px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-md hover:bg-muted transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAllPhotos(true);
+                }}
               >
-                <img
-                  src={image}
-                  alt={`${listing.title} - Image ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                <Grid3X3 className="w-4 h-4" />
+                Show all photos
               </button>
+            </div>
+          ) : galleryImages[3] ? (
+            <div 
+              className="relative cursor-pointer group bg-muted flex items-center justify-center"
+              onClick={() => setShowAllPhotos(true)}
+            >
+              <button 
+                className="bg-background text-foreground px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 shadow-md"
+              >
+                <Grid3X3 className="w-4 h-4" />
+                Show all
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Full Photos Modal */}
+      {showAllPhotos && (
+        <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
+          <div className="sticky top-0 bg-background border-b border-border px-4 py-3 flex items-center justify-between">
+            <button
+              onClick={() => setShowAllPhotos(false)}
+              className="flex items-center gap-2 text-foreground hover:underline"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium">Back</span>
+            </button>
+            <span className="text-sm text-muted-foreground">{listing.images.length} photos</span>
+          </div>
+          <div className="p-4 space-y-2 max-w-4xl mx-auto">
+            {listing.images.map((image, index) => (
+              <img
+                key={index}
+                src={image}
+                alt={`${listing.title} - ${index + 1}`}
+                className="w-full rounded-lg"
+              />
             ))}
           </div>
         </div>
