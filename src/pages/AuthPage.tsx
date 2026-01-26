@@ -22,7 +22,8 @@ const NIGERIAN_UNIVERSITIES = [
   "Other"
 ];
 
-const signUpSchema = z.object({
+// Schema for student signup
+const studentSignUpSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
@@ -30,48 +31,105 @@ const signUpSchema = z.object({
   university: z.string().min(1, "Please select your university")
 });
 
+// Schema for landlord/agent signup
+const landlordSignUpSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
+  phone: z.string().trim().min(10, "Please enter a valid phone number"),
+  companyName: z.string().optional(),
+  university: z.string().min(1, "Please select your area of operation")
+});
+
+// Schema for admin signup
+const adminSignUpSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().trim().min(2, "Full name must be at least 2 characters"),
+  phone: z.string().trim().min(10, "Please enter a valid phone number"),
+  adminCode: z.string().min(1, "Admin code is required")
+});
+
 const loginSchema = z.object({
   email: z.string().trim().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required")
 });
 
+type UserRole = "student" | "landlord" | "admin";
+
 const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get("role");
+  const roleParam = (searchParams.get("role") as UserRole) || "student";
   const universityParam = searchParams.get("university");
   
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(!roleParam);
+  const [isLogin, setIsLogin] = useState(!searchParams.get("role"));
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedRole] = useState<UserRole>(roleParam);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     fullName: "",
     phone: "",
-    university: universityParam || ""
+    university: universityParam || "",
+    companyName: "",
+    adminCode: ""
   });
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session?.user) {
-          navigate("/explore");
+          // Redirect based on role
+          redirectBasedOnRole(session.user.id);
         }
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        navigate("/explore");
+        redirectBasedOnRole(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const redirectBasedOnRole = async (userId: string) => {
+    try {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (roleData?.role) {
+        switch (roleData.role) {
+          case "student":
+            navigate("/student-dashboard");
+            break;
+          case "landlord":
+          case "agent":
+            navigate("/dashboard");
+            break;
+          case "admin":
+            navigate("/admin-dashboard");
+            break;
+          default:
+            navigate("/explore");
+        }
+      } else {
+        navigate("/explore");
+      }
+    } catch (error) {
+      console.error("Error checking role:", error);
+      navigate("/explore");
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -79,25 +137,55 @@ const AuthPage = () => {
     setErrors(prev => ({ ...prev, [name]: "" }));
   };
 
+  const validateForm = () => {
+    let schema;
+    
+    if (isLogin) {
+      schema = loginSchema;
+    } else {
+      switch (selectedRole) {
+        case "student":
+          schema = studentSignUpSchema;
+          break;
+        case "landlord":
+          schema = landlordSignUpSchema;
+          break;
+        case "admin":
+          schema = adminSignUpSchema;
+          break;
+        default:
+          schema = studentSignUpSchema;
+      }
+    }
+
+    const result = schema.safeParse(formData);
+    
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       if (isLogin) {
-        const result = loginSchema.safeParse(formData);
-        if (!result.success) {
-          const fieldErrors: Record<string, string> = {};
-          result.error.errors.forEach(err => {
-            if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
-          });
-          setErrors(fieldErrors);
-          setIsLoading(false);
-          return;
-        }
-
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email.trim(),
           password: formData.password
         });
@@ -119,14 +207,16 @@ const AuthPage = () => {
           setIsLoading(false);
           return;
         }
+
+        // Redirect will happen via onAuthStateChange
       } else {
-        const result = signUpSchema.safeParse(formData);
-        if (!result.success) {
-          const fieldErrors: Record<string, string> = {};
-          result.error.errors.forEach(err => {
-            if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        // Validate admin code if admin
+        if (selectedRole === "admin" && formData.adminCode !== "ADMIN2024") {
+          toast({
+            title: "Invalid Admin Code",
+            description: "Please enter a valid admin authorization code.",
+            variant: "destructive"
           });
-          setErrors(fieldErrors);
           setIsLoading(false);
           return;
         }
@@ -160,6 +250,7 @@ const AuthPage = () => {
         }
 
         if (data.user) {
+          // Create profile
           const { error: profileError } = await supabase
             .from("profiles")
             .insert({
@@ -171,17 +262,29 @@ const AuthPage = () => {
             });
 
           if (profileError) {
-            toast({
-              title: "Profile Error",
-              description: "Account created but profile setup failed. Please contact support.",
-              variant: "destructive"
-            });
-          } else {
-            toast({
-              title: "Welcome!",
-              description: "Your account has been created successfully."
-            });
+            console.error("Profile creation error:", profileError);
           }
+
+          // Create user role - map "landlord" from landing page to actual role
+          const roleToInsert = selectedRole === "landlord" ? "landlord" : selectedRole;
+          
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: data.user.id,
+              role: roleToInsert as "student" | "landlord" | "agent",
+              phone: formData.phone.trim(),
+              company_name: formData.companyName || null
+            });
+
+          if (roleError) {
+            console.error("Role creation error:", roleError);
+          }
+
+          toast({
+            title: "Welcome!",
+            description: `Your ${selectedRole} account has been created successfully.`
+          });
         }
       }
     } catch (error: any) {
@@ -192,6 +295,19 @@ const AuthPage = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const getRoleTitle = () => {
+    switch (selectedRole) {
+      case "student":
+        return "Student Account";
+      case "landlord":
+        return "Landlord/Agent Account";
+      case "admin":
+        return "Admin Account";
+      default:
+        return "Account";
     }
   };
 
@@ -216,10 +332,19 @@ const AuthPage = () => {
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
               <Home className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">shelterMe</h1>
+            <h1 className="text-2xl font-bold text-foreground">ShelterMe</h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
-              {isLogin ? "Welcome back!" : "Create your account"}
+              {isLogin ? "Welcome back!" : `Create your ${getRoleTitle()}`}
             </p>
+            {!isLogin && selectedRole !== "student" && (
+              <span className={`mt-2 text-xs px-3 py-1 rounded-full ${
+                selectedRole === "admin" 
+                  ? "bg-purple-100 text-purple-700" 
+                  : "bg-blue-100 text-blue-700"
+              }`}>
+                {selectedRole === "admin" ? "Admin Registration" : "Property Manager"}
+              </span>
+            )}
           </div>
 
           {/* Form */}
@@ -263,10 +388,48 @@ const AuthPage = () => {
                   )}
                 </div>
 
-                {/* University */}
+                {/* Company Name - Only for Landlords */}
+                {selectedRole === "landlord" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-sm font-medium">
+                      Company/Agency Name <span className="text-muted-foreground">(Optional)</span>
+                    </Label>
+                    <Input
+                      id="companyName"
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                      placeholder="Your company or agency name"
+                      className="h-12 rounded-xl"
+                    />
+                  </div>
+                )}
+
+                {/* Admin Code - Only for Admins */}
+                {selectedRole === "admin" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="adminCode" className="text-sm font-medium">
+                      Admin Authorization Code
+                    </Label>
+                    <Input
+                      id="adminCode"
+                      name="adminCode"
+                      type="password"
+                      value={formData.adminCode}
+                      onChange={handleInputChange}
+                      placeholder="Enter admin code"
+                      className={`h-12 rounded-xl ${errors.adminCode ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                    />
+                    {errors.adminCode && (
+                      <p className="text-xs text-destructive">{errors.adminCode}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* University / Area */}
                 <div className="space-y-2">
                   <Label htmlFor="university" className="text-sm font-medium">
-                    University
+                    {selectedRole === "student" ? "University" : "Area of Operation"}
                   </Label>
                   <select
                     id="university"
@@ -283,7 +446,9 @@ const AuthPage = () => {
                       backgroundSize: "20px"
                     }}
                   >
-                    <option value="">Select your university</option>
+                    <option value="">
+                      {selectedRole === "student" ? "Select your university" : "Select area"}
+                    </option>
                     {NIGERIAN_UNIVERSITIES.map(uni => (
                       <option key={uni} value={uni}>{uni}</option>
                     ))}
