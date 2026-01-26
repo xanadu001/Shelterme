@@ -21,7 +21,7 @@ const LandingPage = () => {
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
               <Home className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">StudentStay</span>
+            <span className="text-xl font-bold text-foreground">ShelterMe</span>
           </div>
           <Button 
             variant="ghost" 
@@ -151,7 +151,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="relative z-10 px-6 py-8 mt-auto">
         <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-          © 2024 StudentStay. All rights reserved.
+          © 2024 ShelterMe. All rights reserved.
         </div>
       </footer>
     </div>
