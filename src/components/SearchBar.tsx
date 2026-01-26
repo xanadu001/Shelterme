@@ -26,7 +26,7 @@ const SearchBar = ({
     <div className="px-4 py-3">
       {/* Platform Name */}
       <h1 className="text-xl font-bold text-primary mb-3 text-center">
-        UniHostel
+        ShelterMe
       </h1>
       
       {/* Search Bar */}
