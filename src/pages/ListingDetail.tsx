@@ -80,6 +80,31 @@ const ListingDetail = () => {
         )}
       </div>
 
+      {/* Thumbnail Gallery */}
+      {listing.images.length > 1 && (
+        <div className="px-4 py-3">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {listing.images.map((image, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                  index === currentImageIndex 
+                    ? "border-primary ring-2 ring-primary/20" 
+                    : "border-transparent opacity-70 hover:opacity-100"
+                }`}
+              >
+                <img
+                  src={image}
+                  alt={`${listing.title} - Image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div className="px-4 pt-4 space-y-6">
         {/* Title & Location */}
