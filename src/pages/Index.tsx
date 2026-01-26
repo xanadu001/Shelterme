@@ -17,6 +17,7 @@ const DEFAULT_FILTERS: FilterOptions = {
 const Index = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch properties from database
   const { data: dbProperties = [] } = useQuery({
@@ -59,6 +60,16 @@ const Index = () => {
 
   const filteredListings = useMemo(() => {
     return allCombinedListings.filter((listing) => {
+      // Search query filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          listing.title.toLowerCase().includes(query) ||
+          listing.location.toLowerCase().includes(query) ||
+          listing.description?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+
       // Price filter
       if (listing.price < filters.priceRange[0] || listing.price > filters.priceRange[1]) {
         return false;
@@ -87,7 +98,7 @@ const Index = () => {
 
       return true;
     });
-  }, [filters, allCombinedListings]);
+  }, [filters, allCombinedListings, searchQuery]);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -102,7 +113,12 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Top Section */}
       <div className="sticky top-0 z-40 bg-background">
-        <SearchBar onFilterClick={() => setFilterOpen(true)} activeFilterCount={activeFilterCount} />
+        <SearchBar 
+          onFilterClick={() => setFilterOpen(true)} 
+          activeFilterCount={activeFilterCount}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
       </div>
 
       {/* Main Content */}
