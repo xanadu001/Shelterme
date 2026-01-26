@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, Home, Shield, Star } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-import heroBg from "@/assets/hero-bg.jpg";
 
 const NIGERIAN_UNIVERSITIES = [
   "University of Lagos (UNILAG)",
@@ -40,7 +39,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role");
-  const isLandlordFlow = roleParam === "landlord" || roleParam === "agent";
+  const universityParam = searchParams.get("university");
   
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(!roleParam);
@@ -53,7 +52,7 @@ const AuthPage = () => {
     password: "",
     fullName: "",
     phone: "",
-    university: ""
+    university: universityParam || ""
   });
 
   useEffect(() => {
@@ -197,283 +196,200 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Hero Image (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative">
-        <img
-          src={heroBg}
-          alt="Student accommodation"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/70 to-primary/50" />
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <div>
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-white/90 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span className="font-medium">Back to Home</span>
-            </button>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="px-4 py-4">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-8">
+        <div className="w-full max-w-sm">
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
+              <Home className="w-8 h-8 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">shelterMe</h1>
+            <p className="text-sm text-muted-foreground text-center mt-1">
+              {isLogin ? "Welcome back!" : "Create your account"}
+            </p>
           </div>
 
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl xl:text-5xl font-bold leading-tight mb-4">
-                {isLandlordFlow ? (
-                  <>
-                    List Your
-                    <br />
-                    Properties
-                  </>
-                ) : (
-                  <>
-                    Find Your Perfect
-                    <br />
-                    Student Home
-                  </>
-                )}
-              </h1>
-              <p className="text-lg text-white/90 max-w-md">
-                {isLandlordFlow 
-                  ? "Reach thousands of students looking for accommodation. Manage your properties and grow your rental business."
-                  : "Discover verified, affordable accommodations near your campus. Join thousands of students who've found their ideal living space."
-                }
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold">Verified Listings</p>
-                  <p className="text-sm text-white/80">All properties are personally verified</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <Home className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold">500+ Properties</p>
-                  <p className="text-sm text-white/80">Across all major universities</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <Star className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-semibold">4.8 Rating</p>
-                  <p className="text-sm text-white/80">Trusted by 10,000+ students</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-sm text-white/60">
-            © 2024 StudentHomes. Making student housing simple.
-          </p>
-        </div>
-      </div>
-
-      {/* Right Side - Auth Form */}
-      <div className="w-full lg:w-1/2 flex flex-col bg-background">
-        {/* Mobile Header */}
-        <div className="lg:hidden sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center gap-3 z-10">
-          <button
-            onClick={() => navigate("/")}
-            className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h1 className="text-lg font-semibold text-foreground">
-            {isLogin ? "Log In" : "Create Account"}
-          </h1>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="w-full max-w-md">
-            {/* Logo/Brand */}
-            <div className="mb-8 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <Home className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold text-foreground">StudentHomes</span>
-              </div>
-              <h2 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
-                {isLogin ? "Welcome back" : isLandlordFlow ? "Create landlord account" : "Create your account"}
-              </h2>
-              <p className="text-muted-foreground">
-                {isLogin
-                  ? "Enter your credentials to access your account"
-                  : isLandlordFlow 
-                    ? "Join our platform and start listing your properties"
-                    : "Join our community of students finding their perfect home"
-                }
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      placeholder="John Doe"
-                      className={`h-12 px-4 ${errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {errors.fullName && (
-                      <p className="text-sm text-destructive">{errors.fullName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="08012345678"
-                      className={`h-12 px-4 ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                    />
-                    {errors.phone && (
-                      <p className="text-sm text-destructive">{errors.phone}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="university" className="text-sm font-medium">University</Label>
-                    <select
-                      id="university"
-                      name="university"
-                      value={formData.university}
-                      onChange={handleInputChange}
-                      className={`w-full h-12 px-4 rounded-lg border bg-background text-foreground text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
-                        errors.university ? "border-destructive" : "border-input"
-                      }`}
-                    >
-                      <option value="">Select your university</option>
-                      {NIGERIAN_UNIVERSITIES.map(uni => (
-                        <option key={uni} value={uni}>{uni}</option>
-                      ))}
-                    </select>
-                    {errors.university && (
-                      <p className="text-sm text-destructive">{errors.university}</p>
-                    )}
-                  </div>
-                </>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="you@university.edu"
-                  className={`h-12 px-4 ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                <div className="relative">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <>
+                {/* Full Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-sm font-medium">
+                    Full Name
+                  </Label>
                   <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
                     onChange={handleInputChange}
-                    placeholder={isLogin ? "Enter your password" : "Create a strong password"}
-                    className={`h-12 px-4 pr-12 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                    placeholder="Enter your full name"
+                    className={`h-12 rounded-xl ${errors.fullName ? "border-destructive focus-visible:ring-destructive" : ""}`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  {errors.fullName && (
+                    <p className="text-xs text-destructive">{errors.fullName}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="08012345678"
+                    className={`h-12 rounded-xl ${errors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                  />
+                  {errors.phone && (
+                    <p className="text-xs text-destructive">{errors.phone}</p>
+                  )}
+                </div>
+
+                {/* University */}
+                <div className="space-y-2">
+                  <Label htmlFor="university" className="text-sm font-medium">
+                    University
+                  </Label>
+                  <select
+                    id="university"
+                    name="university"
+                    value={formData.university}
+                    onChange={handleInputChange}
+                    className={`w-full h-12 px-4 rounded-xl border bg-background text-foreground text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 appearance-none cursor-pointer ${
+                      errors.university ? "border-destructive" : "border-input"
+                    }`}
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 12px center",
+                      backgroundSize: "20px"
+                    }}
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+                    <option value="">Select your university</option>
+                    {NIGERIAN_UNIVERSITIES.map(uni => (
+                      <option key={uni} value={uni}>{uni}</option>
+                    ))}
+                  </select>
+                  {errors.university && (
+                    <p className="text-xs text-destructive">{errors.university}</p>
+                  )}
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
-              </div>
+              </>
+            )}
 
-              {isLogin && (
-                <div className="flex justify-end">
-                  <button type="button" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </button>
-                </div>
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email Address
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="you@example.com"
+                className={`h-12 rounded-xl ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email}</p>
               )}
-
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Please wait...
-                  </span>
-                ) : isLogin ? "Log In" : "Create Account"}
-              </Button>
-            </form>
-
-            {/* Divider */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-background px-4 text-sm text-muted-foreground">
-                  {isLogin ? "New to StudentHomes?" : "Already have an account?"}
-                </span>
-              </div>
             </div>
 
-            {/* Toggle Button */}
-            <Button
-              type="button"
-              variant="outline"
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder={isLogin ? "Enter your password" : "Create a password"}
+                  className={`h-12 rounded-xl pr-12 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-destructive">{errors.password}</p>
+              )}
+            </div>
+
+            {isLogin && (
+              <div className="flex justify-end">
+                <button type="button" className="text-sm text-primary hover:underline">
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all mt-6" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Please wait...
+                </span>
+              ) : isLogin ? "Log In" : "Create Account"}
+            </Button>
+          </form>
+
+          {/* Toggle Link */}
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button
               onClick={() => {
                 setIsLogin(!isLogin);
                 setErrors({});
               }}
-              className="w-full h-12 text-base font-medium"
+              className="text-primary font-medium hover:underline"
             >
-              {isLogin ? "Create an Account" : "Log In Instead"}
-            </Button>
+              {isLogin ? "Sign Up" : "Log In"}
+            </button>
+          </p>
 
-            {/* Terms */}
-            {!isLogin && (
-              <p className="text-xs text-center text-muted-foreground mt-6">
-                By creating an account, you agree to our{" "}
-                <button className="text-primary hover:underline">Terms of Service</button>
-                {" "}and{" "}
-                <button className="text-primary hover:underline">Privacy Policy</button>
-              </p>
-            )}
-          </div>
+          {/* Terms */}
+          {!isLogin && (
+            <p className="text-xs text-center text-muted-foreground mt-6">
+              By creating an account, you agree to our{" "}
+              <button className="text-primary hover:underline">Terms of Service</button>
+              {" "}and{" "}
+              <button className="text-primary hover:underline">Privacy Policy</button>
+            </p>
+          )}
         </div>
-      </div>
+      </main>
     </div>
   );
 };
