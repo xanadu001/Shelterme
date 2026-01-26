@@ -1,14 +1,12 @@
-import { Search, Heart, User, LogOut, Home, LayoutDashboard } from "lucide-react";
+import { Search, Heart, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser, Session } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
 
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -50,46 +48,27 @@ const BottomNav = () => {
     }
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to log out",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out"
-      });
-      navigate("/");
-    }
-  };
-
   const getActiveTab = () => {
-    if (location.pathname === "/") return "home";
     if (location.pathname === "/explore" || location.pathname.startsWith("/listing")) return "explore";
     if (location.pathname === "/wishlists") return "wishlists";
     if (location.pathname === "/dashboard") return "dashboard";
+    if (location.pathname === "/profile") return "profile";
     return "explore";
   };
 
   const activeTab = getActiveTab();
 
   const handleNavClick = (id: string) => {
-    if (id === "home") {
-      navigate("/");
-    } else if (id === "login") {
+    if (id === "login") {
       navigate("/auth");
-    } else if (id === "logout") {
-      handleLogout();
     } else if (id === "wishlists") {
       navigate("/wishlists");
     } else if (id === "explore") {
       navigate("/explore");
     } else if (id === "dashboard") {
       navigate("/dashboard");
+    } else if (id === "profile") {
+      navigate("/profile");
     }
   };
 
@@ -98,14 +77,12 @@ const BottomNav = () => {
 
   const navItems = user
     ? [
-        { id: "home", icon: Home, label: "Home" },
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
         ...(isLandlordOrAgent ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
-        { id: "logout", icon: LogOut, label: "Log out" },
+        { id: "profile", icon: User, label: "Profile" },
       ]
     : [
-        { id: "home", icon: Home, label: "Home" },
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
         { id: "login", icon: User, label: "Log in" },
