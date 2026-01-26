@@ -25,6 +25,7 @@ const ListingCardAirbnb = ({
 }: ListingCardAirbnbProps) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(isFavorite);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   useEffect(() => {
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
@@ -49,11 +50,19 @@ const ListingCardAirbnb = ({
   return (
     <div className="cursor-pointer group" onClick={() => navigate(`/listing/${id}`)}>
       {/* Image Container */}
-      <div className="relative aspect-square rounded-xl overflow-hidden mb-2">
+      <div className="relative aspect-square rounded-xl overflow-hidden mb-2 bg-muted">
+        {/* Skeleton placeholder */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-muted animate-pulse" />
+        )}
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+            imageLoaded ? "opacity-100" : "opacity-0"
+          }`}
         />
         
         {/* Available Badge */}
