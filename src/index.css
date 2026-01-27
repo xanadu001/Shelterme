@@ -15,7 +15,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
 
-    --primary: 121 96% 43%;
+    --primary: 121 98% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
@@ -24,10 +24,10 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 121 96% 43%;
+    --accent: 121 98% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 121 96% 43%;
+    --success: 121 98% 40%;
     --success-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -35,7 +35,7 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 121 96% 43%;
+    --ring: 121 98% 40%;
 
     --radius: 0.75rem;
 
@@ -46,7 +46,7 @@
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 121 96% 43%;
+    --sidebar-ring: 121 98% 40%;
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -72,7 +72,7 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 121 96% 43%;
+    --primary: 121 98% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 15%;
@@ -81,10 +81,10 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
 
-    --accent: 121 96% 43%;
+    --accent: 121 98% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 121 96% 43%;
+    --success: 121 98% 40%;
     --success-foreground: 0 0% 100%;
 
     --destructive: 0 63% 31%;
@@ -92,7 +92,7 @@
 
     --border: 0 0% 20%;
     --input: 0 0% 20%;
-    --ring: 121 96% 43%;
+    --ring: 121 98% 40%;
 
     /* Glassmorphism - Dark Mode */
     --glass-bg: 0 0% 12% / 0.7;
