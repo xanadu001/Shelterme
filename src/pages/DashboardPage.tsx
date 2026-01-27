@@ -480,7 +480,12 @@ const DashboardPage = () => {
               <p className="text-xs text-slate-400">Our support team is online 24/7</p>
             </div>
           </div>
-          <Button variant="secondary" size="sm" className="bg-white text-slate-800 hover:bg-slate-100">
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            className="bg-white text-slate-800 hover:bg-slate-100"
+            onClick={() => window.open("https://wa.me/2348012345678?text=Hello%2C%20I%20need%20assistance%20with%20my%20agent%20dashboard", "_blank")}
+          >
             Chat Now
           </Button>
         </div>
