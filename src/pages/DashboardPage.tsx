@@ -287,14 +287,14 @@ const DashboardPage = () => {
 
       {/* Earnings Card */}
       <div className="px-4 mb-6">
-        <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-2xl p-5 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-primary to-[hsl(111,100%,60%)] rounded-2xl p-5 text-primary-foreground relative overflow-hidden">
           {/* Background decoration */}
-          <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute right-8 bottom-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2" />
+          <div className="absolute right-0 top-0 w-32 h-32 bg-black/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute right-8 bottom-0 w-20 h-20 bg-black/5 rounded-full translate-y-1/2" />
           
-          <p className="text-emerald-100 text-sm mb-1">Total Earnings</p>
+          <p className="text-primary-foreground/80 text-sm mb-1">Total Earnings</p>
           <h2 className="text-3xl font-bold mb-3">{formatCurrency(stats.totalEarnings)}</h2>
-          <div className="inline-flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-sm">
+          <div className="inline-flex items-center gap-1 bg-black/20 rounded-full px-3 py-1 text-sm">
             <TrendingUp className="w-3 h-3" />
             <span>+{stats.earningsGrowth}% this month</span>
           </div>
@@ -308,8 +308,8 @@ const DashboardPage = () => {
             onClick={() => setActiveTab("properties")}
             className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+              <Building2 className="w-5 h-5 text-primary" />
             </div>
             <p className="text-xs text-muted-foreground mb-1">Total Listings</p>
             <p className="text-2xl font-bold text-foreground">{stats.totalListings}</p>
@@ -319,8 +319,8 @@ const DashboardPage = () => {
             onClick={() => setActiveTab("payments")}
             className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
-              <CalendarCheck className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+              <CalendarCheck className="w-5 h-5 text-primary" />
             </div>
             <p className="text-xs text-muted-foreground mb-1">Active Bookings</p>
             <p className="text-2xl font-bold text-foreground">{stats.activeBookings}</p>
