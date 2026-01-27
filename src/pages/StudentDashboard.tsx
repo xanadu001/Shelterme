@@ -111,7 +111,7 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-emerald-500 text-primary-foreground px-4 pt-6 pb-16">
+      <div className="bg-gradient-to-r from-primary to-[hsl(111,100%,60%)] text-primary-foreground px-4 pt-6 pb-16">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-primary-foreground/80 text-xs uppercase tracking-wide">Welcome Back</p>
@@ -139,8 +139,8 @@ const StudentDashboard = () => {
               onClick={() => navigate("/explore")}
               className="flex flex-col items-center p-3 rounded-xl hover:bg-muted transition-colors"
             >
-              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
-                <Search className="w-5 h-5 text-emerald-600" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <Search className="w-5 h-5 text-primary" />
               </div>
               <span className="text-xs text-muted-foreground">Find</span>
               <span className="text-sm font-semibold">Hostels</span>
@@ -158,8 +158,8 @@ const StudentDashboard = () => {
             </button>
 
             <div className="flex flex-col items-center p-3 rounded-xl">
-              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
-                <CalendarCheck className="w-5 h-5 text-emerald-600" />
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                <CalendarCheck className="w-5 h-5 text-primary" />
               </div>
               <span className="text-xs text-muted-foreground">Bookings</span>
               <span className="text-sm font-semibold">{bookings.length}</span>
@@ -212,7 +212,7 @@ const StudentDashboard = () => {
                   </p>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     booking.payment_status === "completed"
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-primary/20 text-primary"
                       : "bg-amber-100 text-amber-700"
                   }`}>
                     {booking.payment_status}

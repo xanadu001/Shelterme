@@ -72,8 +72,8 @@ const DashboardStats = ({ user }: DashboardStatsProps) => {
       title: "Total Properties",
       value: stats.totalProperties,
       icon: Building2,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      color: "text-primary",
+      bg: "bg-primary/10",
     },
     {
       title: "Active Listings",

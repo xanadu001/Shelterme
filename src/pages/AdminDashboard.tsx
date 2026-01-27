@@ -140,9 +140,9 @@ const AdminDashboard = () => {
   }
 
   const statCards = [
-    { title: "Total Users", value: stats.totalUsers, icon: Users, color: "bg-emerald-500" },
-    { title: "Properties", value: stats.totalProperties, icon: Building2, color: "bg-emerald-600" },
-    { title: "Bookings", value: stats.totalBookings, icon: CalendarCheck, color: "bg-emerald-700" },
+    { title: "Total Users", value: stats.totalUsers, icon: Users, color: "bg-primary" },
+    { title: "Properties", value: stats.totalProperties, icon: Building2, color: "bg-primary" },
+    { title: "Bookings", value: stats.totalBookings, icon: CalendarCheck, color: "bg-primary" },
     { title: "Pending Review", value: stats.pendingVerifications, icon: AlertTriangle, color: "bg-amber-500" },
   ];
 
@@ -213,13 +213,13 @@ const AdminDashboard = () => {
             </div>
 
             {/* Growth Card */}
-            <div className="bg-gradient-to-r from-primary to-emerald-500 rounded-xl p-5 text-white">
+            <div className="bg-gradient-to-r from-primary to-[hsl(111,100%,60%)] rounded-xl p-5 text-primary-foreground">
               <div className="flex items-center gap-3 mb-2">
                 <TrendingUp className="w-5 h-5" />
                 <span className="font-medium">Platform Growth</span>
               </div>
               <p className="text-2xl font-bold">+24%</p>
-              <p className="text-sm text-white/80">New users this month</p>
+              <p className="text-sm text-primary-foreground/80">New users this month</p>
             </div>
           </>
         )}
@@ -269,7 +269,7 @@ const AdminDashboard = () => {
                           </div>
                           <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                             property.is_verified
-                              ? "bg-emerald-100 text-emerald-700"
+                              ? "bg-primary/20 text-primary"
                               : "bg-amber-100 text-amber-700"
                           }`}>
                             {property.is_verified ? "Verified" : "Pending"}
