@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import PropertyList from "@/components/dashboard/PropertyList";
 import PropertyForm from "@/components/dashboard/PropertyForm";
 import RoleSetup from "@/components/dashboard/RoleSetup";
+import PaymentsView from "@/components/dashboard/PaymentsView";
+import ProfileView from "@/components/dashboard/ProfileView";
 
 interface DashboardStats {
   totalListings: number;
@@ -220,20 +222,38 @@ const DashboardPage = () => {
     );
   }
 
-  // Show property list
-  if (showPropertyList) {
+  // Show property list (My Properties tab)
+  if (activeTab === "properties") {
     return (
       <div className="min-h-screen bg-background pb-24">
         <div className="px-4 py-4">
-          <button
-            onClick={() => setShowPropertyList(false)}
-            className="text-primary font-medium mb-4"
-          >
-            ← Back to Dashboard
-          </button>
           <PropertyList user={user} onEdit={handleEditProperty} />
         </div>
-        <DashboardBottomNav activeTab="properties" onTabChange={setActiveTab} />
+        <DashboardBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+    );
+  }
+
+  // Show payments view
+  if (activeTab === "payments") {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="px-4 py-4">
+          <PaymentsView user={user} />
+        </div>
+        <DashboardBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+    );
+  }
+
+  // Show profile view
+  if (activeTab === "profile") {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="px-4 py-4">
+          <ProfileView user={user} onLogout={handleLogout} />
+        </div>
+        <DashboardBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
   }
@@ -285,7 +305,7 @@ const DashboardPage = () => {
       <div className="px-4 mb-6">
         <div className="grid grid-cols-2 gap-4">
           <button 
-            onClick={() => setShowPropertyList(true)}
+            onClick={() => setActiveTab("properties")}
             className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
@@ -295,13 +315,16 @@ const DashboardPage = () => {
             <p className="text-2xl font-bold text-foreground">{stats.totalListings}</p>
           </button>
           
-          <div className="bg-background border border-border rounded-xl p-4">
+          <button 
+            onClick={() => setActiveTab("payments")}
+            className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
+          >
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
               <CalendarCheck className="w-5 h-5 text-emerald-600" />
             </div>
             <p className="text-xs text-muted-foreground mb-1">Active Bookings</p>
             <p className="text-2xl font-bold text-foreground">{stats.activeBookings}</p>
-          </div>
+          </button>
         </div>
       </div>
 
