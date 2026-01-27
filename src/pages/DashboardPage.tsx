@@ -7,19 +7,21 @@ import {
   Plus, 
   Home, 
   Building2, 
-  CreditCard, 
   User as UserIcon,
   TrendingUp,
   CalendarCheck,
   MessageCircle,
   Headphones,
-  LogOut
+  LogOut,
+  Clock,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import PropertyList from "@/components/dashboard/PropertyList";
 import PropertyForm from "@/components/dashboard/PropertyForm";
 import RoleSetup from "@/components/dashboard/RoleSetup";
-import PaymentsView from "@/components/dashboard/PaymentsView";
+
 import ProfileView from "@/components/dashboard/ProfileView";
 
 interface DashboardStats {
@@ -27,6 +29,18 @@ interface DashboardStats {
   activeBookings: number;
   totalEarnings: number;
   earningsGrowth: number;
+  pendingPayments: number;
+  completedPayments: number;
+}
+
+interface Booking {
+  id: string;
+  student_name: string;
+  student_email: string;
+  total_amount: number;
+  payment_status: string;
+  created_at: string;
+  move_in_date: string;
 }
 
 interface Inquiry {
@@ -53,8 +67,11 @@ const DashboardPage = () => {
     activeBookings: 0,
     totalEarnings: 0,
     earningsGrowth: 12,
+    pendingPayments: 0,
+    completedPayments: 0,
   });
   const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
 
   const handleLogout = async () => {
     try {
@@ -123,18 +140,38 @@ const DashboardPage = () => {
         .select("*")
         .eq("owner_id", userId);
 
-      // Fetch bookings count
-      const { count: bookingsCount } = await supabase
+      // Fetch bookings with full data
+      const { data: bookingsData } = await supabase
         .from("bookings")
-        .select("*", { count: "exact", head: true });
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      let totalEarnings = 0;
+      let pendingPayments = 0;
+      let completedPayments = 0;
+
+      if (bookingsData) {
+        totalEarnings = bookingsData
+          .filter(b => b.payment_status === "completed")
+          .reduce((sum, b) => sum + Number(b.total_amount), 0);
+        
+        pendingPayments = bookingsData
+          .filter(b => b.payment_status === "pending")
+          .reduce((sum, b) => sum + Number(b.total_amount), 0);
+        
+        completedPayments = bookingsData.filter(b => b.payment_status === "completed").length;
+        
+        setRecentBookings(bookingsData.slice(0, 3));
+      }
 
       if (properties) {
-        const totalEarnings = properties.reduce((sum, p) => sum + Number(p.price), 0);
         setStats({
           totalListings: properties.length,
-          activeBookings: bookingsCount || 0,
+          activeBookings: bookingsData?.length || 0,
           totalEarnings: totalEarnings,
           earningsGrowth: 12,
+          pendingPayments: pendingPayments,
+          completedPayments: completedPayments,
         });
 
         // Create mock recent inquiries based on properties
@@ -192,6 +229,34 @@ const DashboardPage = () => {
     }).format(amount);
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-NG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="w-4 h-4 text-primary" />;
+      case "pending":
+        return <Clock className="w-4 h-4 text-amber-500" />;
+      default:
+        return <XCircle className="w-4 h-4 text-red-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      completed: "bg-primary/10 text-primary",
+      pending: "bg-amber-100 text-amber-700",
+      failed: "bg-red-100 text-red-700",
+    };
+    return styles[status as keyof typeof styles] || "bg-muted text-muted-foreground";
+  };
+
   const getInitials = (email: string) => {
     return email?.substring(0, 2).toUpperCase() || "AG";
   };
@@ -234,17 +299,6 @@ const DashboardPage = () => {
     );
   }
 
-  // Show payments view
-  if (activeTab === "payments") {
-    return (
-      <div className="min-h-screen bg-background pb-24">
-        <div className="px-4 py-4">
-          <PaymentsView user={user} />
-        </div>
-        <DashboardBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-      </div>
-    );
-  }
 
   // Show profile view
   if (activeTab === "profile") {
@@ -303,29 +357,76 @@ const DashboardPage = () => {
 
       {/* Stats Row */}
       <div className="px-4 mb-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           <button 
             onClick={() => setActiveTab("properties")}
-            className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
+            className="bg-background border border-border rounded-xl p-3 text-left hover:border-primary/50 transition-colors"
           >
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-              <Building2 className="w-5 h-5 text-primary" />
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+              <Building2 className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">Total Listings</p>
-            <p className="text-2xl font-bold text-foreground">{stats.totalListings}</p>
+            <p className="text-xs text-muted-foreground mb-1">Listings</p>
+            <p className="text-xl font-bold text-foreground">{stats.totalListings}</p>
           </button>
           
-          <button 
-            onClick={() => setActiveTab("payments")}
-            className="bg-background border border-border rounded-xl p-4 text-left hover:border-primary/50 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-              <CalendarCheck className="w-5 h-5 text-primary" />
+          <div className="bg-background border border-border rounded-xl p-3 text-left">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+              <CalendarCheck className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-xs text-muted-foreground mb-1">Active Bookings</p>
-            <p className="text-2xl font-bold text-foreground">{stats.activeBookings}</p>
-          </button>
+            <p className="text-xs text-muted-foreground mb-1">Bookings</p>
+            <p className="text-xl font-bold text-foreground">{stats.activeBookings}</p>
+          </div>
+
+          <div className="bg-background border border-border rounded-xl p-3 text-left">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-2">
+              <Clock className="w-4 h-4 text-amber-500" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-1">Pending</p>
+            <p className="text-xl font-bold text-foreground">{formatCurrency(stats.pendingPayments)}</p>
+          </div>
         </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="px-4 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground">Recent Transactions</h3>
+        </div>
+        
+        {recentBookings.length === 0 ? (
+          <div className="text-center py-8 bg-muted/50 rounded-xl">
+            <CalendarCheck className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground text-sm">No transactions yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {recentBookings.map((booking) => (
+              <div 
+                key={booking.id}
+                className="bg-background border border-border rounded-xl p-3"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 className="font-medium text-foreground text-sm">{booking.student_name}</h4>
+                    <p className="text-xs text-muted-foreground">{booking.student_email}</p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getStatusBadge(booking.payment_status)}`}>
+                    {getStatusIcon(booking.payment_status)}
+                    {booking.payment_status}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    Move-in: {formatDate(booking.move_in_date)}
+                  </span>
+                  <span className="font-semibold text-foreground text-sm">
+                    {formatCurrency(booking.total_amount)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recent Inquiries */}
@@ -415,7 +516,6 @@ const DashboardBottomNav = ({
   const tabs = [
     { id: "home", label: "Home", icon: Home },
     { id: "properties", label: "My Properties", icon: Building2 },
-    { id: "payments", label: "Payments", icon: CreditCard },
     { id: "profile", label: "Profile", icon: UserIcon },
   ];
 
