@@ -279,20 +279,19 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bedrooms">Bedrooms</Label>
+              <Label htmlFor="bedrooms">Room Type</Label>
               <Select
                 value={formData.bedrooms}
                 onValueChange={(value) => setFormData(prev => ({ ...prev, bedrooms: value }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select room type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1, 2, 3, 4, 5].map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
-                      {num} {num === 1 ? "Bedroom" : "Bedrooms"}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="0">Single Room</SelectItem>
+                  <SelectItem value="self-contain">Self-Contain</SelectItem>
+                  <SelectItem value="1">1 Bedroom</SelectItem>
+                  <SelectItem value="2">2 Bedroom</SelectItem>
                 </SelectContent>
               </Select>
             </div>
