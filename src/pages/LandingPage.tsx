@@ -4,17 +4,7 @@ import { GraduationCap, Building2, Shield, Home, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const NIGERIAN_UNIVERSITIES = [
-  "University of Lagos (UNILAG)",
-  "University of Ibadan (UI)",
-  "Obafemi Awolowo University (OAU)",
-  "University of Nigeria, Nsukka (UNN)",
-  "Ahmadu Bello University (ABU)",
-  "University of Benin (UNIBEN)",
-  "University of Ilorin (UNILORIN)",
-  "Lagos State University (LASU)",
-  "Covenant University",
-  "Babcock University",
-  "Other"
+  "Federal University of Technology, Minna (FUTMINNA)",
 ];
 
 type UserRole = "student" | "landlord" | "admin";
