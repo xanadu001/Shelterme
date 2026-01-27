@@ -12,8 +12,10 @@ import {
   TrendingUp,
   CalendarCheck,
   MessageCircle,
-  Headphones
+  Headphones,
+  LogOut
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import PropertyList from "@/components/dashboard/PropertyList";
 import PropertyForm from "@/components/dashboard/PropertyForm";
 import RoleSetup from "@/components/dashboard/RoleSetup";
@@ -36,6 +38,7 @@ interface Inquiry {
 
 const DashboardPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,24 @@ const DashboardPage = () => {
     earningsGrowth: 12,
   });
   const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+      navigate("/auth");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -229,6 +250,13 @@ const DashboardPage = () => {
           <div className="flex items-center gap-2">
             <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
               <MessageCircle className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-8 h-8 rounded-full bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4 text-destructive" />
             </button>
             <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm">
               {getInitials(user?.email || "")}
