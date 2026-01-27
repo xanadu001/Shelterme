@@ -73,9 +73,12 @@ const AuthPage = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (session?.user) {
-          // Redirect based on role
-          redirectBasedOnRole(session.user.id);
+        // Only redirect on SIGNED_IN event (login), not on initial session or signup
+        // Signup will handle its own redirect after role is saved
+        if (event === "SIGNED_IN" && session?.user && isLogin) {
+          setTimeout(() => {
+            redirectBasedOnRole(session.user.id);
+          }, 0);
         }
       }
     );
@@ -87,7 +90,7 @@ const AuthPage = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isLogin]);
 
   const redirectBasedOnRole = async (userId: string) => {
     try {
@@ -254,6 +257,13 @@ const AuthPage = () => {
             title: "Welcome!",
             description: `Your ${selectedRole} account has been created successfully.`
           });
+
+          // Redirect to appropriate dashboard after role is saved
+          if (selectedRole === "landlord") {
+            navigate("/dashboard");
+          } else {
+            navigate("/student-dashboard");
+          }
         }
       }
     } catch (error: any) {
