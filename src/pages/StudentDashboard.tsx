@@ -139,8 +139,8 @@ const StudentDashboard = () => {
               onClick={() => navigate("/explore")}
               className="flex flex-col items-center p-3 rounded-xl hover:bg-muted transition-colors"
             >
-              <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-                <Search className="w-5 h-5 text-blue-600" />
+              <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center mb-2">
+                <Search className="w-5 h-5 text-emerald-600" />
               </div>
               <span className="text-xs text-muted-foreground">Find</span>
               <span className="text-sm font-semibold">Hostels</span>

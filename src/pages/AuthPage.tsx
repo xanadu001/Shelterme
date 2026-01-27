@@ -308,7 +308,7 @@ const AuthPage = () => {
               {isLogin ? "Welcome back!" : `Create your ${getRoleTitle()}`}
             </p>
             {!isLogin && selectedRole === "landlord" && (
-              <span className="mt-2 text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+              <span className="mt-2 text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                 Property Manager
               </span>
             )}

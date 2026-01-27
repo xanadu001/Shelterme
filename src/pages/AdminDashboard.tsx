@@ -140,9 +140,9 @@ const AdminDashboard = () => {
   }
 
   const statCards = [
-    { title: "Total Users", value: stats.totalUsers, icon: Users, color: "bg-blue-500" },
-    { title: "Properties", value: stats.totalProperties, icon: Building2, color: "bg-emerald-500" },
-    { title: "Bookings", value: stats.totalBookings, icon: CalendarCheck, color: "bg-purple-500" },
+    { title: "Total Users", value: stats.totalUsers, icon: Users, color: "bg-emerald-500" },
+    { title: "Properties", value: stats.totalProperties, icon: Building2, color: "bg-emerald-600" },
+    { title: "Bookings", value: stats.totalBookings, icon: CalendarCheck, color: "bg-emerald-700" },
     { title: "Pending Review", value: stats.pendingVerifications, icon: AlertTriangle, color: "bg-amber-500" },
   ];
 
