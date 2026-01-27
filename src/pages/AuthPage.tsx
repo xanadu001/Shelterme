@@ -104,7 +104,7 @@ const AuthPage = () => {
         const role = roleData.role as string;
         switch (role) {
           case "student":
-            navigate("/student-dashboard");
+            navigate("/explore");
             break;
           case "landlord":
           case "agent":
@@ -258,11 +258,12 @@ const AuthPage = () => {
             description: `Your ${selectedRole} account has been created successfully.`
           });
 
-          // Redirect to appropriate dashboard after role is saved
+          // Redirect to appropriate page after role is saved
+          // Students go to homepage, landlords/agents go to dashboard
           if (selectedRole === "landlord") {
             navigate("/dashboard");
           } else {
-            navigate("/student-dashboard");
+            navigate("/explore");
           }
         }
       }
