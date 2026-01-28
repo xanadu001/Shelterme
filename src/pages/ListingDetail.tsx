@@ -29,6 +29,8 @@ const ListingDetail = () => {
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [loading, setLoading] = useState(true);
   const [listing, setListing] = useState<any>(null);
+  const [ownerPhone, setOwnerPhone] = useState<string | null>(null);
+  const [ownerName, setOwnerName] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -61,7 +63,23 @@ const ListingDetail = () => {
             images: data.images && data.images.length > 0 ? data.images : ["/placeholder.svg"],
             isVerified: data.is_verified,
             isAvailable: data.is_available,
+            ownerId: data.owner_id,
           });
+
+          // Fetch owner's profile for phone number
+          if (data.owner_id) {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("phone, full_name")
+              .eq("id", data.owner_id)
+              .maybeSingle();
+            
+            if (profileData) {
+              setOwnerPhone(profileData.phone);
+              setOwnerName(profileData.full_name);
+            }
+          }
+
           setLoading(false);
           return;
         }
@@ -75,6 +93,36 @@ const ListingDetail = () => {
 
     fetchListing();
   }, [id]);
+
+  const formatPhoneForWhatsApp = (phone: string) => {
+    // Remove spaces, dashes, and other characters
+    let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+    // If it starts with 0, replace with 234 (Nigeria code)
+    if (cleaned.startsWith('0')) {
+      cleaned = '234' + cleaned.slice(1);
+    }
+    // If it doesn't start with +, assume it needs the country code
+    if (!cleaned.startsWith('+') && !cleaned.startsWith('234')) {
+      cleaned = '234' + cleaned;
+    }
+    // Remove the + if present
+    cleaned = cleaned.replace('+', '');
+    return cleaned;
+  };
+
+  const handleCall = () => {
+    if (ownerPhone) {
+      window.location.href = `tel:${ownerPhone}`;
+    }
+  };
+
+  const handleMessage = () => {
+    if (ownerPhone) {
+      const formattedPhone = formatPhoneForWhatsApp(ownerPhone);
+      const message = encodeURIComponent(`Hello, I'm interested in your property "${listing?.title}" listed on ShelterMe. Is it still available?`);
+      window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
+    }
+  };
 
   if (loading) {
     return (
@@ -316,18 +364,32 @@ const ListingDetail = () => {
 
         {/* Contact Section */}
         <div className="bg-muted/50 rounded-xl p-4">
-          <h2 className="text-lg font-semibold text-foreground mb-2">Contact Us</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-2">
+            {ownerName ? `Contact ${ownerName.split(' ')[0]}` : 'Contact Agent'}
+          </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Interested in this property? Reach out to our team for more information or to schedule a viewing.
+            {ownerPhone 
+              ? "Interested in this property? Reach out to the agent for more information or to schedule a viewing."
+              : "Contact our support team for more information about this property."
+            }
           </p>
           <div className="flex gap-3">
-            <Button className="flex-1 gap-2" variant="outline">
+            <Button 
+              className="flex-1 gap-2" 
+              variant="outline"
+              onClick={handleCall}
+              disabled={!ownerPhone}
+            >
               <Phone className="w-4 h-4" />
               Call
             </Button>
-            <Button className="flex-1 gap-2">
+            <Button 
+              className="flex-1 gap-2"
+              onClick={handleMessage}
+              disabled={!ownerPhone}
+            >
               <MessageCircle className="w-4 h-4" />
-              Message
+              WhatsApp
             </Button>
           </div>
         </div>
