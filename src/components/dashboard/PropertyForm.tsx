@@ -7,26 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Plus, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Building2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const NIGERIAN_UNIVERSITIES = [
-  "University of Lagos (UNILAG)",
-  "University of Ibadan (UI)",
-  "Obafemi Awolowo University (OAU)",
-  "University of Nigeria, Nsukka (UNN)",
-  "Ahmadu Bello University (ABU)",
-  "University of Benin (UNIBEN)",
-  "University of Ilorin (UNILORIN)",
-  "Lagos State University (LASU)",
-  "Covenant University",
-  "Babcock University",
-  "American University of Nigeria (AUN)",
-  "Federal University of Technology, Akure (FUTA)",
-  "University of Port Harcourt (UNIPORT)",
-  "Nnamdi Azikiwe University (UNIZIK)",
-  "Rivers State University",
-];
 
 const AMENITIES_OPTIONS = [
   "24/7 Power",
@@ -56,6 +39,7 @@ interface PropertyFormProps {
 const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [userUniversity, setUserUniversity] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -70,13 +54,33 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
     images: [] as string[],
   });
 
+  // Fetch user's registered university from profile
+  useEffect(() => {
+    const fetchUserUniversity = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("university")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (data?.university) {
+        setUserUniversity(data.university);
+        setFormData(prev => ({ ...prev, university: data.university }));
+      }
+    };
+
+    fetchUserUniversity();
+  }, [user]);
+
   useEffect(() => {
     if (property) {
       setFormData({
         title: property.title || "",
         description: property.description || "",
         location: property.location || "",
-        university: property.university || "",
+        university: property.university || userUniversity,
         price: property.price?.toString() || "",
         period: property.period || "year",
         bedrooms: property.bedrooms?.toString() || "1",
@@ -86,7 +90,7 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
         images: property.images || [],
       });
     }
-  }, [property]);
+  }, [property, userUniversity]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -232,22 +236,17 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="university">Nearby University *</Label>
-              <Select
-                value={formData.university}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, university: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select university" />
-                </SelectTrigger>
-                <SelectContent>
-                  {NIGERIAN_UNIVERSITIES.map((uni) => (
-                    <SelectItem key={uni} value={uni}>
-                      {uni}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="university" className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                Area of Operation
+              </Label>
+              <Input
+                id="university"
+                value={userUniversity || "Not set"}
+                disabled
+                className="h-12 rounded-xl bg-muted"
+              />
+              <p className="text-xs text-muted-foreground">Based on your registered profile</p>
             </div>
 
             <div className="space-y-2">
