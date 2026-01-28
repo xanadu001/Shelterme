@@ -92,16 +92,16 @@ const BottomNav = () => {
     }
   };
 
-  // Show dashboard for landlords/agents/admins, bookings for students
-  const isStudent = userRole === "student";
-  const showDashboard = userRole === "landlord" || userRole === "agent" || userRole === "admin";
+  // Show dashboard for landlords/agents/admins, bookings for students (or users without a role)
+  const isLandlordOrAgent = userRole === "landlord" || userRole === "agent" || userRole === "admin";
+  const showBookings = !isLandlordOrAgent; // Show bookings for students and users without roles
 
   const navItems = user
     ? [
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
-        ...(isStudent ? [{ id: "bookings", icon: CalendarCheck, label: "Bookings" }] : []),
-        ...(showDashboard ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
+        ...(showBookings ? [{ id: "bookings", icon: CalendarCheck, label: "Bookings" }] : []),
+        ...(isLandlordOrAgent ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
         { id: "support", icon: Headphones, label: "Support" },
         { id: "profile", icon: User, label: "Profile" },
       ]
