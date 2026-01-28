@@ -18,7 +18,7 @@ import BottomNav from "@/components/BottomNav";
 
 interface Booking {
   id: string;
-  listing_id: number;
+  listing_id: string;
   student_name: string;
   move_in_date: string;
   payment_status: string;

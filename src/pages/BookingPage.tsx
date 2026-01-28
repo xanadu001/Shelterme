@@ -183,7 +183,7 @@ const BookingPage = () => {
       const { data, error } = await supabase
         .from("bookings")
         .insert({
-          listing_id: typeof listing.id === 'string' ? parseInt(listing.id.substring(0, 8), 16) : listing.id,
+          listing_id: String(listing.id),
           student_name: profile.full_name,
           student_email: profile.email,
           student_phone: profile.phone,
