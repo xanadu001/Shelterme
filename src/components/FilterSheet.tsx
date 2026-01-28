@@ -25,7 +25,7 @@ interface FilterSheetProps {
   onApplyFilters: (filters: FilterOptions) => void;
 }
 
-const LOCATIONS = ["Lagos", "Ibadan", "Yola"];
+const LOCATIONS = ["Bosso", "GRA", "Tunga", "Dutsen Kura", "Kpakungu", "Maitumbi", "Chanchaga"];
 const PROPERTY_TYPES = ["Self-Contain", "Shared Room", "Flat", "Hostel", "Studio"];
 
 const FilterSheet = ({ open, onOpenChange, filters, onApplyFilters }: FilterSheetProps) => {
