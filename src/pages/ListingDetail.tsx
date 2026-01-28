@@ -391,15 +391,15 @@ const ListingDetail = () => {
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
-              <span>We hold your payment safely while the property is verified</span>
+              <span>Your payment is held safely by ShelterMe</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
-              <span>Once verified, you can inspect the property in person</span>
+              <span>Our team inspects and verifies the property on your behalf</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">4</span>
-              <span>Payment is released to the agent only after you confirm satisfaction</span>
+              <span>Payment is released to the agent only after the property passes our inspection</span>
             </li>
           </ol>
         </div>
