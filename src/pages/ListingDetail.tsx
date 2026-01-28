@@ -2,15 +2,87 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListingById } from "@/data/listings";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface PropertyData {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  university: string;
+  price: number;
+  period: string;
+  bedrooms: number;
+  bathrooms: number;
+  size: string | null;
+  amenities: string[] | null;
+  images: string[] | null;
+  is_verified: boolean | null;
+  is_available: boolean | null;
+}
 
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [listing, setListing] = useState<any>(null);
 
-  const listing = getListingById(Number(id));
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!id) return;
+
+      // First try to get from database (UUID format)
+      const isUUID = id.length > 10;
+      
+      if (isUUID) {
+        const { data, error } = await supabase
+          .from("properties")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (data) {
+          // Transform database property to listing format
+          setListing({
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            location: data.location,
+            university: data.university,
+            price: data.price,
+            period: data.period,
+            bedrooms: data.bedrooms,
+            bathrooms: data.bathrooms,
+            size: data.size || "N/A",
+            amenities: data.amenities || [],
+            images: data.images && data.images.length > 0 ? data.images : ["/placeholder.svg"],
+            isVerified: data.is_verified,
+            isAvailable: data.is_available,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Fallback to static data for numeric IDs
+      const staticListing = getListingById(Number(id));
+      setListing(staticListing);
+      setLoading(false);
+    };
+
+    fetchListing();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!listing) {
     return (
@@ -174,7 +246,7 @@ const ListingDetail = () => {
             <span className="text-sm text-muted-foreground">{listing.images.length} photos</span>
           </div>
           <div className="p-4 space-y-2 max-w-4xl mx-auto">
-            {listing.images.map((image, index) => (
+            {listing.images.map((image: string, index: number) => (
               <img
                 key={index}
                 src={image}
@@ -226,19 +298,21 @@ const ListingDetail = () => {
         </div>
 
         {/* Amenities */}
-        <div>
-          <h2 className="text-lg font-semibold text-foreground mb-3">What this place offers</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {listing.amenities.map((amenity, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-primary" />
+        {listing.amenities && listing.amenities.length > 0 && (
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-3">What this place offers</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {listing.amenities.map((amenity: string, index: number) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-primary" />
+                  </div>
+                  <span className="text-sm text-foreground">{amenity}</span>
                 </div>
-                <span className="text-sm text-foreground">{amenity}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Contact Section */}
         <div className="bg-muted/50 rounded-xl p-4">

@@ -6,7 +6,7 @@ import listing5 from "@/assets/listing-5.jpg";
 import listing6 from "@/assets/listing-6.jpg";
 
 export interface Listing {
-  id: number;
+  id: number | string;
   image: string;
   images: string[];
   title: string;
