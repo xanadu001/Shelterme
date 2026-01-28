@@ -28,7 +28,8 @@ import {
   UserCheck,
   UserX,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Ban
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -53,6 +54,7 @@ interface UserWithRole {
   role?: string;
   verified?: boolean;
   company_name?: string;
+  suspended?: boolean;
 }
 
 interface PropertyData {
@@ -214,6 +216,7 @@ const AdminDashboard = () => {
         role: roleData?.role || "student",
         verified: roleData?.verified || false,
         company_name: roleData?.company_name,
+        suspended: roleData?.suspended || false,
       };
     });
 
@@ -307,6 +310,33 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSuspendUser = async (userId: string, suspended: boolean) => {
+    try {
+      await supabase
+        .from("user_roles")
+        .update({ suspended })
+        .eq("user_id", userId);
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, suspended } : u))
+      );
+
+      toast({
+        title: suspended ? "User Suspended" : "User Unsuspended",
+        description: suspended
+          ? "The user has been suspended. Their properties are now hidden from the platform."
+          : "The user has been unsuspended. Their properties are now visible.",
+      });
+    } catch (error) {
+      console.error("Error suspending user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update user suspension status.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleInspectionUpdate = async (
     bookingId: string,
     status: string,
@@ -373,6 +403,7 @@ const AdminDashboard = () => {
       filterStatus === "all" ||
       (filterStatus === "verified" && u.verified) ||
       (filterStatus === "unverified" && !u.verified) ||
+      (filterStatus === "suspended" && u.suspended) ||
       filterStatus === u.role;
     return matchesSearch && matchesFilter;
   });
@@ -560,7 +591,7 @@ const AdminDashboard = () => {
                 />
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {["all", "student", "landlord", "agent", "verified", "unverified"].map(
+                {["all", "student", "landlord", "agent", "verified", "unverified", "suspended"].map(
                   (status) => (
                     <Button
                       key={status}
@@ -586,11 +617,11 @@ const AdminDashboard = () => {
                 filteredUsers.map((u) => (
                   <div
                     key={u.id}
-                    className="bg-background rounded-xl p-4 border border-border"
+                    className={`bg-background rounded-xl p-4 border ${u.suspended ? 'border-destructive/50 bg-destructive/5' : 'border-border'}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-medium text-foreground">
                             {u.full_name}
                           </h3>
@@ -602,6 +633,11 @@ const AdminDashboard = () => {
                           </Badge>
                           {u.verified && (
                             <CheckCircle2 className="w-4 h-4 text-primary" />
+                          )}
+                          {u.suspended && (
+                            <Badge variant="destructive" className="text-xs">
+                              Suspended
+                            </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -623,18 +659,29 @@ const AdminDashboard = () => {
                           Joined {format(new Date(u.created_at), "MMM d, yyyy")}
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2">
                         {u.role !== "admin" && (
                           <Button
                             size="sm"
                             variant={u.verified ? "outline" : "default"}
                             onClick={() => handleVerifyUser(u.id, !u.verified)}
+                            title={u.verified ? "Remove verification" : "Verify user"}
                           >
                             {u.verified ? (
                               <UserX className="w-4 h-4" />
                             ) : (
                               <UserCheck className="w-4 h-4" />
                             )}
+                          </Button>
+                        )}
+                        {(u.role === "landlord" || u.role === "agent") && (
+                          <Button
+                            size="sm"
+                            variant={u.suspended ? "outline" : "destructive"}
+                            onClick={() => handleSuspendUser(u.id, !u.suspended)}
+                            title={u.suspended ? "Unsuspend user" : "Suspend user"}
+                          >
+                            <Ban className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
