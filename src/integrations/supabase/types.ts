@@ -177,6 +177,7 @@ export type Database = {
           id: string
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
+          suspended: boolean | null
           user_id: string
           verified: boolean | null
         }
@@ -186,6 +187,7 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          suspended?: boolean | null
           user_id: string
           verified?: boolean | null
         }
@@ -195,6 +197,7 @@ export type Database = {
           id?: string
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          suspended?: boolean | null
           user_id?: string
           verified?: boolean | null
         }
@@ -212,6 +215,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_suspended: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "student" | "landlord" | "agent" | "admin"
