@@ -53,7 +53,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "How do I get a refund?",
-    answer: "Refunds are processed automatically if a property fails our verification. For other refund requests, please contact our support team with your booking reference. Refunds typically take 3-5 business days to process.",
+    answer: "Refunds are processed automatically if a property fails our verification. For other refund requests, please contact our support team with your booking reference. Refunds are processed within 24 hours.",
     icon: CreditCard,
   },
   {
