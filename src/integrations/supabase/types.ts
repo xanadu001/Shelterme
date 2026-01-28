@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          listing_id: number
+          listing_id: string
           move_in_date: string
           payment_reference: string | null
           payment_status: string
@@ -34,7 +34,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          listing_id: number
+          listing_id: string
           move_in_date: string
           payment_reference?: string | null
           payment_status?: string
@@ -50,7 +50,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          listing_id?: number
+          listing_id?: string
           move_in_date?: string
           payment_reference?: string | null
           payment_status?: string
