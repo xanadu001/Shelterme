@@ -18,6 +18,9 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          inspection_date: string | null
+          inspection_notes: string | null
+          inspection_status: string | null
           listing_id: string
           move_in_date: string
           payment_reference: string | null
@@ -34,6 +37,9 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          inspection_date?: string | null
+          inspection_notes?: string | null
+          inspection_status?: string | null
           listing_id: string
           move_in_date: string
           payment_reference?: string | null
@@ -50,6 +56,9 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          inspection_date?: string | null
+          inspection_notes?: string | null
+          inspection_status?: string | null
           listing_id?: string
           move_in_date?: string
           payment_reference?: string | null

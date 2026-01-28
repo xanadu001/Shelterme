@@ -192,9 +192,10 @@ const StudentDashboard = () => {
         ) : (
           <div className="space-y-3">
             {bookings.map((booking) => (
-              <div
+              <button
                 key={booking.id}
-                className="bg-background border border-border rounded-xl p-4 flex items-center gap-3"
+                onClick={() => navigate(`/booking-detail/${booking.id}`)}
+                className="w-full bg-background border border-border rounded-xl p-4 flex items-center gap-3 hover:border-primary/50 transition-colors text-left"
               >
                 <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                   <Building2 className="w-6 h-6 text-muted-foreground" />
@@ -218,7 +219,8 @@ const StudentDashboard = () => {
                     {booking.payment_status}
                   </span>
                 </div>
-              </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              </button>
             ))}
           </div>
         )}
