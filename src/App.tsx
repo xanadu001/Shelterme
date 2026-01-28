@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SupportPage from "./pages/SupportPage";
 import BookingDetailPage from "./pages/BookingDetailPage";
 import BookingsPage from "./pages/BookingsPage";
+import SupportBubble from "./components/SupportBubble";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <SupportBubble />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/explore" element={<Index />} />
