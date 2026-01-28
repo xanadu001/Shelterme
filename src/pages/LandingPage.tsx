@@ -15,6 +15,12 @@ const LandingPage = () => {
   const [selectedUniversity, setSelectedUniversity] = useState("");
 
   const handleCreateAccount = () => {
+    // Admins can only log in, not sign up
+    if (selectedRole === "admin") {
+      navigate("/auth?mode=admin-login");
+      return;
+    }
+    
     const params = new URLSearchParams();
     params.set("role", selectedRole);
     if (selectedUniversity) {
@@ -143,7 +149,7 @@ const LandingPage = () => {
             onClick={handleCreateAccount}
             className="w-full h-12 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
-            Create My Account
+            {selectedRole === "admin" ? "Admin Login" : "Create My Account"}
           </Button>
 
           {/* Login Link */}
