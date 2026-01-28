@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3 } from "lucide-react";
+import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListingById } from "@/data/listings";
 import { useState, useEffect } from "react";
@@ -361,6 +361,56 @@ const ListingDetail = () => {
             </div>
           </div>
         )}
+
+        {/* Payment Protection Notice */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-amber-800 mb-1">Payment Protection</h3>
+              <p className="text-sm text-amber-700 leading-relaxed">
+                <strong>Do NOT pay directly to the agent.</strong> All payments should be made through ShelterMe. 
+                We verify the property before releasing payment to the agent to protect you from scams.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-primary" />
+            How Our Payment Protection Works
+          </h3>
+          <ol className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
+              <span>Pay securely through ShelterMe using the "Book Now" button</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
+              <span>We hold your payment safely while the property is verified</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
+              <span>Once verified, you can inspect the property in person</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">4</span>
+              <span>Payment is released to the agent only after you confirm satisfaction</span>
+            </li>
+          </ol>
+        </div>
+
+        {/* Warning */}
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3">
+          <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+          <p className="text-sm text-red-700">
+            <strong>Warning:</strong> Never send money directly to agents via bank transfer, cash, or any other means outside the ShelterMe platform.
+          </p>
+        </div>
 
         {/* Contact Section */}
         <div className="bg-muted/50 rounded-xl p-4">
