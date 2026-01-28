@@ -1,4 +1,4 @@
-import { Search, Heart, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Search, Heart, User, LayoutDashboard, Headphones } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,7 @@ const BottomNav = () => {
     if (location.pathname === "/explore" || location.pathname.startsWith("/listing")) return "explore";
     if (location.pathname === "/wishlists") return "wishlists";
     if (location.pathname === "/dashboard" || location.pathname === "/student-dashboard" || location.pathname === "/admin-dashboard") return "dashboard";
+    if (location.pathname === "/support") return "support";
     if (location.pathname === "/profile") return "profile";
     return "explore";
   };
@@ -81,6 +82,8 @@ const BottomNav = () => {
       navigate("/explore");
     } else if (id === "dashboard") {
       navigate(getDashboardRoute());
+    } else if (id === "support") {
+      navigate("/support");
     } else if (id === "profile") {
       navigate("/profile");
     }
@@ -94,11 +97,13 @@ const BottomNav = () => {
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
         ...(showDashboard ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
+        { id: "support", icon: Headphones, label: "Support" },
         { id: "profile", icon: User, label: "Profile" },
       ]
     : [
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
+        { id: "support", icon: Headphones, label: "Support" },
         { id: "login", icon: User, label: "Log in" },
       ];
 

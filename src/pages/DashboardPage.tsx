@@ -484,9 +484,9 @@ const DashboardPage = () => {
             variant="secondary" 
             size="sm" 
             className="bg-white text-slate-800 hover:bg-slate-100"
-            onClick={() => window.open("https://wa.me/2348012345678?text=Hello%2C%20I%20need%20assistance%20with%20my%20agent%20dashboard", "_blank")}
+            onClick={() => navigate("/support")}
           >
-            Chat Now
+            Get Help
           </Button>
         </div>
       </div>
