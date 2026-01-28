@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 interface ListingCardAirbnbProps {
-  id: number;
+  id: number | string;
   image: string;
   title: string;
   location: string;
@@ -29,19 +29,20 @@ const ListingCardAirbnb = ({
 
   useEffect(() => {
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
-    setIsWishlisted(wishlist.includes(id));
+    setIsWishlisted(wishlist.map(String).includes(String(id)));
   }, [id]);
 
   const toggleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+    const idStr = String(id);
     
     if (isWishlisted) {
-      const updated = wishlist.filter((itemId: number) => itemId !== id);
+      const updated = wishlist.filter((itemId: string | number) => String(itemId) !== idStr);
       localStorage.setItem("wishlist", JSON.stringify(updated));
       setIsWishlisted(false);
     } else {
-      wishlist.push(id);
+      wishlist.push(idStr);
       localStorage.setItem("wishlist", JSON.stringify(wishlist));
       setIsWishlisted(true);
     }

@@ -36,7 +36,7 @@ const Index = () => {
 
       // Transform database properties to match Listing interface
       return data.map((property): Listing => ({
-        id: property.id as unknown as number, // Use string id but cast for compatibility
+        id: property.id, // Keep the UUID string id
         image: property.images?.[0] || "/placeholder.svg",
         images: property.images || [],
         title: property.title,

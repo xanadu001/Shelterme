@@ -18,6 +18,15 @@ interface Profile {
   university: string;
 }
 
+interface ListingData {
+  id: string | number;
+  title: string;
+  location: string;
+  price: number;
+  period: string;
+  images: string[];
+}
+
 const BookingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,12 +38,56 @@ const BookingPage = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [listing, setListing] = useState<ListingData | null>(null);
   
   const [formData, setFormData] = useState({
     moveInDate: ""
   });
 
-  const listing = getListingById(Number(id));
+  // Fetch listing from database or static data
+  useEffect(() => {
+    const fetchListing = async () => {
+      if (!id) return;
+
+      // First try to get from database (UUID format)
+      const isUUID = id.length > 10;
+      
+      if (isUUID) {
+        const { data, error } = await supabase
+          .from("properties")
+          .select("id, title, location, price, period, images")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (data) {
+          setListing({
+            id: data.id,
+            title: data.title,
+            location: data.location,
+            price: data.price,
+            period: data.period,
+            images: data.images && data.images.length > 0 ? data.images : ["/placeholder.svg"],
+          });
+          return;
+        }
+      }
+
+      // Fallback to static data for numeric IDs
+      const staticListing = getListingById(Number(id));
+      if (staticListing) {
+        setListing({
+          id: staticListing.id,
+          title: staticListing.title,
+          location: staticListing.location,
+          price: staticListing.price,
+          period: staticListing.period,
+          images: staticListing.images,
+        });
+      }
+    };
+
+    fetchListing();
+  }, [id]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -71,7 +124,7 @@ const BookingPage = () => {
       .from("profiles")
       .select("full_name, email, phone, university")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (data) {
       setProfile(data);
@@ -79,7 +132,7 @@ const BookingPage = () => {
     setIsLoading(false);
   };
 
-  if (!listing) {
+  if (!listing && !isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -90,10 +143,11 @@ const BookingPage = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || !listing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -129,7 +183,7 @@ const BookingPage = () => {
       const { data, error } = await supabase
         .from("bookings")
         .insert({
-          listing_id: listing.id,
+          listing_id: typeof listing.id === 'string' ? parseInt(listing.id.substring(0, 8), 16) : listing.id,
           student_name: profile.full_name,
           student_email: profile.email,
           student_phone: profile.phone,
