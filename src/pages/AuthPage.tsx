@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, EyeOff, Home } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Home, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,9 +53,10 @@ const AuthPage = () => {
   const [searchParams] = useSearchParams();
   const roleParam = (searchParams.get("role") === "landlord" ? "landlord" : "student") as UserRole;
   const universityParam = searchParams.get("university");
+  const isAdminLogin = searchParams.get("mode") === "admin-login";
   
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(!searchParams.get("role"));
+  const [isLogin, setIsLogin] = useState(!searchParams.get("role") || isAdminLogin);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -279,6 +280,7 @@ const AuthPage = () => {
   };
 
   const getRoleTitle = () => {
+    if (isAdminLogin) return "Admin Login";
     return selectedRole === "landlord" ? "Landlord/Agent Account" : "Student Account";
   };
 
@@ -300,14 +302,24 @@ const AuthPage = () => {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <Home className="w-8 h-8 text-primary-foreground" />
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${
+              isAdminLogin ? "bg-slate-900" : "bg-primary"
+            }`}>
+              {isAdminLogin ? (
+                <Shield className="w-8 h-8 text-white" />
+              ) : (
+                <Home className="w-8 h-8 text-primary-foreground" />
+              )}
             </div>
-            <h1 className="text-2xl font-bold text-foreground">ShelterMe</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {isAdminLogin ? "Admin Portal" : "ShelterMe"}
+            </h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
-              {isLogin ? "Welcome back!" : `Create your ${getRoleTitle()}`}
+              {isAdminLogin 
+                ? "Sign in to access the admin dashboard" 
+                : isLogin ? "Welcome back!" : `Create your ${getRoleTitle()}`}
             </p>
-            {!isLogin && selectedRole === "landlord" && (
+            {!isLogin && selectedRole === "landlord" && !isAdminLogin && (
               <span className="mt-2 text-xs px-3 py-1 rounded-full bg-primary/20 text-primary">
                 Property Manager
               </span>
@@ -477,22 +489,36 @@ const AuthPage = () => {
             </Button>
           </form>
 
-          {/* Toggle Link */}
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              className="text-primary font-medium hover:underline"
-            >
-              {isLogin ? "Sign Up" : "Log In"}
-            </button>
-          </p>
+          {/* Toggle Link - Hide for admin login */}
+          {!isAdminLogin && (
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setErrors({});
+                }}
+                className="text-primary font-medium hover:underline"
+              >
+                {isLogin ? "Sign Up" : "Log In"}
+              </button>
+            </p>
+          )}
+
+          {isAdminLogin && (
+            <p className="text-center text-sm text-muted-foreground mt-6">
+              Admin accounts are provisioned manually.{" "}
+              <button
+                onClick={() => navigate("/")}
+                className="text-primary font-medium hover:underline"
+              >
+                Back to Home
+              </button>
+            </p>
+          )}
 
           {/* Terms */}
-          {!isLogin && (
+          {!isLogin && !isAdminLogin && (
             <p className="text-xs text-center text-muted-foreground mt-6">
               By creating an account, you agree to our{" "}
               <button className="text-primary hover:underline">Terms of Service</button>
