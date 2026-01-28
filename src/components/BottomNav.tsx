@@ -1,4 +1,4 @@
-import { Search, Heart, User, LayoutDashboard, Headphones } from "lucide-react";
+import { Search, Heart, User, LayoutDashboard, Headphones, CalendarCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ const BottomNav = () => {
   const getActiveTab = () => {
     if (location.pathname === "/explore" || location.pathname.startsWith("/listing")) return "explore";
     if (location.pathname === "/wishlists") return "wishlists";
+    if (location.pathname === "/bookings" || location.pathname.startsWith("/booking-detail")) return "bookings";
     if (location.pathname === "/dashboard" || location.pathname === "/student-dashboard" || location.pathname === "/admin-dashboard") return "dashboard";
     if (location.pathname === "/support") return "support";
     if (location.pathname === "/profile") return "profile";
@@ -80,6 +81,8 @@ const BottomNav = () => {
       navigate("/wishlists");
     } else if (id === "explore") {
       navigate("/explore");
+    } else if (id === "bookings") {
+      navigate("/bookings");
     } else if (id === "dashboard") {
       navigate(getDashboardRoute());
     } else if (id === "support") {
@@ -89,13 +92,15 @@ const BottomNav = () => {
     }
   };
 
-  // Show dashboard for all logged-in users
-  const showDashboard = userRole !== null;
+  // Show dashboard for landlords/agents/admins, bookings for students
+  const isStudent = userRole === "student";
+  const showDashboard = userRole === "landlord" || userRole === "agent" || userRole === "admin";
 
   const navItems = user
     ? [
         { id: "explore", icon: Search, label: "Explore" },
         { id: "wishlists", icon: Heart, label: "Wishlists" },
+        ...(isStudent ? [{ id: "bookings", icon: CalendarCheck, label: "Bookings" }] : []),
         ...(showDashboard ? [{ id: "dashboard", icon: LayoutDashboard, label: "Dashboard" }] : []),
         { id: "support", icon: Headphones, label: "Support" },
         { id: "profile", icon: User, label: "Profile" },
