@@ -9,17 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const NIGERIAN_UNIVERSITIES = [
-  "University of Lagos (UNILAG)",
-  "University of Ibadan (UI)",
-  "Obafemi Awolowo University (OAU)",
-  "University of Nigeria, Nsukka (UNN)",
-  "Ahmadu Bello University (ABU)",
-  "University of Benin (UNIBEN)",
-  "University of Ilorin (UNILORIN)",
-  "Lagos State University (LASU)",
-  "Covenant University",
-  "Babcock University",
-  "Other"
+  "Federal University of Technology, Minna (FUTMINNA)",
 ];
 
 // Schema for student signup
