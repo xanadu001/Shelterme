@@ -62,7 +62,7 @@ const LandingPage = () => {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <img src={logo} alt="ShelterMe" className="w-16 h-16 mb-4" />
+            <img src={logo} alt="ShelterMe" className="w-48 h-48 mb-4" />
             <h1 className="text-2xl font-bold text-foreground">shelterMe</h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
               Find your perfect home near campus in Nigeria.
