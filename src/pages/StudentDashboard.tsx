@@ -211,12 +211,18 @@ const StudentDashboard = () => {
                   <p className="font-semibold text-sm text-foreground">
                     {formatCurrency(booking.total_amount)}
                   </p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${
                     booking.payment_status === "completed"
                       ? "bg-primary/20 text-primary"
+                      : booking.payment_status === "failed"
+                      ? "bg-red-100 text-red-700"
                       : "bg-amber-100 text-amber-700"
                   }`}>
-                    {booking.payment_status}
+                    {booking.payment_status === "completed" 
+                      ? "Completed" 
+                      : booking.payment_status === "failed"
+                      ? "Failed"
+                      : "Pending Inspection"}
                   </span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
