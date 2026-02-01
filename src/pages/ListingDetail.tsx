@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3, ShieldCheck, AlertTriangle, Play } from "lucide-react";
+import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3, ShieldCheck, AlertTriangle, Play, Clock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListingById } from "@/data/listings";
 import { useState, useEffect } from "react";
@@ -23,6 +23,8 @@ interface PropertyData {
   is_available: boolean | null;
 }
 
+type BookingStatusType = "none" | "pending" | "approved";
+
 const ListingDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -32,6 +34,7 @@ const ListingDetail = () => {
   const [listing, setListing] = useState<any>(null);
   const [ownerPhone, setOwnerPhone] = useState<string | null>(null);
   const [ownerName, setOwnerName] = useState<string | null>(null);
+  const [bookingStatus, setBookingStatus] = useState<BookingStatusType>("none");
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -93,7 +96,43 @@ const ListingDetail = () => {
       setLoading(false);
     };
 
+    const fetchBookingStatus = async () => {
+      if (!id) return;
+
+      // Check for active bookings on this property
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select("inspection_status, payment_status")
+        .eq("listing_id", String(id))
+        .order("created_at", { ascending: false });
+
+      if (bookings && bookings.length > 0) {
+        // Check if any booking is approved (property is taken)
+        const approvedBooking = bookings.find(
+          (b) => b.inspection_status === "approved" && b.payment_status === "verified"
+        );
+        if (approvedBooking) {
+          setBookingStatus("approved");
+          return;
+        }
+
+        // Check if any booking is pending (awaiting verification)
+        const pendingBooking = bookings.find(
+          (b) => 
+            (b.inspection_status === "pending" || b.inspection_status === "scheduled" || b.inspection_status === "in_progress") &&
+            (b.payment_status === "submitted" || b.payment_status === "pending")
+        );
+        if (pendingBooking) {
+          setBookingStatus("pending");
+          return;
+        }
+      }
+
+      setBookingStatus("none");
+    };
+
     fetchListing();
+    fetchBookingStatus();
   }, [id]);
 
   const formatPhoneForWhatsApp = (phone: string) => {
@@ -328,6 +367,41 @@ const ListingDetail = () => {
 
       {/* Content */}
       <div className="px-4 pt-4 space-y-6">
+        {/* Booking Status Banner */}
+        {bookingStatus === "pending" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-amber-800 mb-1">Booking in Progress</h3>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  Someone has already booked this property and it's currently awaiting verification. 
+                  You can still contact the agent for more information or check back later.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {bookingStatus === "approved" && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-red-800 mb-1">Property Already Booked</h3>
+                <p className="text-sm text-red-700 leading-relaxed">
+                  This property has been verified and is no longer available. 
+                  Please browse other listings to find your perfect home.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Title & Location */}
         <div>
           <h1 className="text-xl font-semibold text-foreground mb-1">
@@ -474,7 +548,19 @@ const ListingDetail = () => {
               <span className="text-sm font-normal text-muted-foreground">/{listing.period}</span>
             </p>
           </div>
-          <Button size="lg" onClick={() => navigate(`/booking/${id}`)}>Book Now</Button>
+          {bookingStatus === "none" ? (
+            <Button size="lg" onClick={() => navigate(`/booking/${id}`)}>Book Now</Button>
+          ) : bookingStatus === "pending" ? (
+            <Button size="lg" disabled className="bg-amber-500 hover:bg-amber-500">
+              <Clock className="w-4 h-4 mr-2" />
+              Awaiting Verification
+            </Button>
+          ) : (
+            <Button size="lg" disabled variant="secondary">
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Already Booked
+            </Button>
+          )}
         </div>
       </div>
     </div>

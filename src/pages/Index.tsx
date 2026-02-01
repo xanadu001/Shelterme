@@ -6,6 +6,11 @@ import BottomNav from "@/components/BottomNav";
 import FilterSheet, { FilterOptions } from "@/components/FilterSheet";
 import { allListings, Listing } from "@/data/listings";
 import { supabase } from "@/integrations/supabase/client";
+import { BookingStatus } from "@/components/ListingCardAirbnb";
+
+interface ExtendedListing extends Listing {
+  bookingStatus?: BookingStatus;
+}
 
 const DEFAULT_FILTERS: FilterOptions = {
   priceRange: [0, 600000],
@@ -53,10 +58,49 @@ const Index = () => {
     },
   });
 
+  // Fetch active bookings to determine which properties are booked
+  const { data: activeBookings = [] } = useQuery({
+    queryKey: ["active-bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("listing_id, inspection_status, payment_status")
+        .in("inspection_status", ["pending", "scheduled", "in_progress"])
+        .in("payment_status", ["submitted", "pending"]);
+
+      if (error) {
+        console.error("Error fetching bookings:", error);
+        return [];
+      }
+
+      return data;
+    },
+  });
+
+  // Create a map of listing_id -> booking status
+  const bookingStatusMap = useMemo(() => {
+    const map: Record<string, BookingStatus> = {};
+    activeBookings.forEach((booking) => {
+      // If there's an active booking (pending inspection), mark as booked
+      map[booking.listing_id] = "booked";
+    });
+    return map;
+  }, [activeBookings]);
+
   // Combine database properties with static listings (db properties first)
   const allCombinedListings = useMemo(() => {
-    return [...dbProperties, ...allListings];
-  }, [dbProperties]);
+    const combinedListings: ExtendedListing[] = [
+      ...dbProperties.map((listing) => ({
+        ...listing,
+        bookingStatus: bookingStatusMap[String(listing.id)] || "available",
+      })),
+      ...allListings.map((listing) => ({
+        ...listing,
+        bookingStatus: bookingStatusMap[String(listing.id)] || "available",
+      })),
+    ];
+    return combinedListings;
+  }, [dbProperties, bookingStatusMap]);
 
   const filteredListings = useMemo(() => {
     return allCombinedListings.filter((listing) => {
