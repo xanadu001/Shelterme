@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, Building2, Shield, Home, Check } from "lucide-react";
+import { GraduationCap, Building2, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const NIGERIAN_UNIVERSITIES = [
   "Federal University of Technology, Minna (FUTMINNA)",
@@ -61,9 +62,7 @@ const LandingPage = () => {
         <div className="w-full max-w-sm">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <Home className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="ShelterMe" className="w-16 h-16 mb-4" />
             <h1 className="text-2xl font-bold text-foreground">shelterMe</h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
               Find your perfect home near campus in Nigeria.

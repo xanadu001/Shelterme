@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 interface SearchBarProps {
   onFilterClick: () => void;
@@ -24,10 +25,11 @@ const SearchBar = ({
 
   return (
     <div className="px-4 py-3">
-      {/* Platform Name */}
-      <h1 className="text-xl font-bold text-primary mb-3 text-center">
-        ShelterMe
-      </h1>
+      {/* Platform Logo */}
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <img src={logo} alt="ShelterMe" className="h-8 w-auto" />
+        <h1 className="text-xl font-bold text-primary">ShelterMe</h1>
+      </div>
       
       {/* Search Bar */}
       <div className="w-full flex items-center gap-3 bg-background border border-border rounded-full px-4 py-2.5 shadow-sm">
