@@ -158,15 +158,15 @@ const DashboardPage = () => {
       let completedPayments = 0;
 
       if (agentBookings.length > 0) {
-        // Total earnings = completed payments (inspection passed)
+        // Total earnings = completed payments (inspection passed) - only rent amount, not service fee
         totalEarnings = agentBookings
           .filter(b => b.payment_status === "completed")
-          .reduce((sum, b) => sum + Number(b.total_amount), 0);
+          .reduce((sum, b) => sum + Number(b.rent_amount), 0);
         
-        // Pending payments = awaiting inspection (payment submitted/pending but not yet verified)
+        // Pending payments = awaiting inspection (payment submitted/pending but not yet verified) - only rent amount
         pendingPayments = agentBookings
           .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "failed")
-          .reduce((sum, b) => sum + Number(b.total_amount), 0);
+          .reduce((sum, b) => sum + Number(b.rent_amount), 0);
         
         completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
         
