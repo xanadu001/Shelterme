@@ -9,8 +9,10 @@ interface Booking {
   student_email: string;
   total_amount: number;
   payment_status: string;
+  inspection_status: string | null;
   created_at: string;
   move_in_date: string;
+  listing_id: string;
 }
 
 interface PaymentsViewProps {
@@ -40,25 +42,32 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
         .select("id")
         .eq("owner_id", user?.id);
 
-      if (properties && properties.length > 0) {
-        // For now, fetch all bookings (in a real app, you'd join with properties)
+      const propertyIds = properties?.map(p => p.id) || [];
+
+      if (propertyIds.length > 0) {
+        // Fetch bookings for this agent's properties
         const { data: bookingsData } = await supabase
           .from("bookings")
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (bookingsData) {
-          setBookings(bookingsData);
+        // Filter to only this agent's property bookings
+        const agentBookings = bookingsData?.filter(b => propertyIds.includes(b.listing_id)) || [];
+
+        if (agentBookings.length > 0) {
+          setBookings(agentBookings);
           
-          const totalRevenue = bookingsData
+          // Total revenue = only completed/released payments (inspection passed)
+          const totalRevenue = agentBookings
             .filter(b => b.payment_status === "completed")
             .reduce((sum, b) => sum + Number(b.total_amount), 0);
           
-          const pendingPayments = bookingsData
-            .filter(b => b.payment_status === "pending")
+          // Pending payments = awaiting inspection (not failed)
+          const pendingPayments = agentBookings
+            .filter(b => b.payment_status === "pending" && b.inspection_status !== "failed")
             .reduce((sum, b) => sum + Number(b.total_amount), 0);
           
-          const completedPayments = bookingsData.filter(b => b.payment_status === "completed").length;
+          const completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
 
           setStats({
             totalRevenue,
@@ -91,8 +100,11 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
     });
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
+  const getStatusIcon = (booking: Booking) => {
+    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+      return <XCircle className="w-4 h-4 text-red-500" />;
+    }
+    switch (booking.payment_status) {
       case "completed":
         return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case "pending":
@@ -102,13 +114,29 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (booking: Booking) => {
+    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+      return "bg-red-100 text-red-700";
+    }
     const styles = {
       completed: "bg-emerald-100 text-emerald-700",
       pending: "bg-amber-100 text-amber-700",
       failed: "bg-red-100 text-red-700",
     };
-    return styles[status as keyof typeof styles] || "bg-muted text-muted-foreground";
+    return styles[booking.payment_status as keyof typeof styles] || "bg-muted text-muted-foreground";
+  };
+  
+  const getDisplayStatus = (booking: Booking) => {
+    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+      return "Failed";
+    }
+    if (booking.payment_status === "completed") {
+      return "Released";
+    }
+    if (booking.payment_status === "pending") {
+      return "Pending Inspection";
+    }
+    return booking.payment_status;
   };
 
   if (loading) {
@@ -168,9 +196,9 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
                     <h4 className="font-medium text-foreground">{booking.student_name}</h4>
                     <p className="text-xs text-muted-foreground">{booking.student_email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getStatusBadge(booking.payment_status)}`}>
-                    {getStatusIcon(booking.payment_status)}
-                    {booking.payment_status}
+                  <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getStatusBadge(booking)}`}>
+                    {getStatusIcon(booking)}
+                    {getDisplayStatus(booking)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
