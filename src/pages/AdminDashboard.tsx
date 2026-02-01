@@ -365,14 +365,21 @@ const AdminDashboard = () => {
         updateData.payment_status = "rejected";
       }
 
-      await supabase.from("bookings").update(updateData).eq("id", bookingId);
+      // IMPORTANT: supabase-js does not throw on error; we must check the response.
+      const { data: updatedBooking, error } = await supabase
+        .from("bookings")
+        .update(updateData)
+        .eq("id", bookingId)
+        .select(
+          "id, inspection_status, inspection_date, inspection_notes, payment_status, payment_reference, listing_id, student_name, student_email, student_phone, university, move_in_date, rent_amount, service_fee, total_amount, created_at"
+        )
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!updatedBooking) throw new Error("Booking update failed: no row returned");
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, ...updateData }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? { ...b, ...updatedBooking } : b))
       );
 
       toast({
@@ -388,7 +395,7 @@ const AdminDashboard = () => {
       console.error("Error updating inspection:", error);
       toast({
         title: "Error",
-        description: "Failed to update inspection status.",
+        description: "Failed to update inspection status. Please try again.",
         variant: "destructive",
       });
     }
@@ -1017,9 +1024,9 @@ const AdminDashboard = () => {
                           </div>
                           <Badge
                             variant={
-                              booking.inspection_status === "passed"
+                              booking.inspection_status === "approved"
                                 ? "default"
-                                : booking.inspection_status === "failed"
+                                : booking.inspection_status === "rejected"
                                 ? "destructive"
                                 : "secondary"
                             }
