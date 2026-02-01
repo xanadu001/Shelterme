@@ -378,6 +378,24 @@ const AdminDashboard = () => {
       if (error) throw error;
       if (!updatedBooking) throw new Error("Booking update failed: no row returned");
 
+      // Update property availability based on inspection result
+      const listingId = updatedBooking.listing_id;
+      if (listingId && listingId.length > 10) { // UUID check for database properties
+        if (status === "passed") {
+          // Property is now taken - mark as unavailable
+          await supabase
+            .from("properties")
+            .update({ is_available: false })
+            .eq("id", listingId);
+        } else if (status === "failed") {
+          // Inspection failed - make property available again
+          await supabase
+            .from("properties")
+            .update({ is_available: true })
+            .eq("id", listingId);
+        }
+      }
+
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, ...updatedBooking } : b))
       );
@@ -386,8 +404,8 @@ const AdminDashboard = () => {
         title: status === "passed" ? "Inspection Passed" : "Inspection Failed",
         description:
           status === "passed"
-            ? "Payment has been released to the landlord."
-            : "The booking has been marked as failed. The pending payment has been cleared.",
+            ? "Payment has been released to the landlord. Property is now marked as unavailable."
+            : "The booking has been marked as failed. Property is now available for new bookings.",
       });
 
       fetchStats();

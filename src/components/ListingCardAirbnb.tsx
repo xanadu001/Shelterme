@@ -2,6 +2,8 @@ import { Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
+export type BookingStatus = "available" | "booked" | "unavailable";
+
 interface ListingCardAirbnbProps {
   id: number | string;
   image: string;
@@ -11,6 +13,7 @@ interface ListingCardAirbnbProps {
   period: string;
   isFavorite?: boolean;
   isAvailable?: boolean;
+  bookingStatus?: BookingStatus;
 }
 
 const ListingCardAirbnb = ({
@@ -22,6 +25,7 @@ const ListingCardAirbnb = ({
   period,
   isFavorite = false,
   isAvailable = false,
+  bookingStatus = "available",
 }: ListingCardAirbnbProps) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(isFavorite);
@@ -48,6 +52,21 @@ const ListingCardAirbnb = ({
     }
   };
 
+  const getBadgeContent = () => {
+    if (bookingStatus === "booked") {
+      return { text: "Booked", className: "bg-amber-500 text-white" };
+    }
+    if (bookingStatus === "unavailable") {
+      return { text: "Unavailable", className: "bg-muted text-muted-foreground" };
+    }
+    if (isAvailable) {
+      return { text: "Available", className: "bg-primary text-primary-foreground" };
+    }
+    return null;
+  };
+
+  const badge = getBadgeContent();
+
   return (
     <div className="cursor-pointer group" onClick={() => navigate(`/listing/${id}`)}>
       {/* Image Container */}
@@ -66,10 +85,10 @@ const ListingCardAirbnb = ({
           }`}
         />
         
-        {/* Available Badge */}
-        {isAvailable && (
-          <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full">
-            <span className="text-xs font-medium">Available</span>
+        {/* Status Badge */}
+        {badge && (
+          <div className={`absolute top-2 left-2 px-2 py-1 rounded-full ${badge.className}`}>
+            <span className="text-xs font-medium">{badge.text}</span>
           </div>
         )}
         

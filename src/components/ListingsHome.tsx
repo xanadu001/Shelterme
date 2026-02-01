@@ -1,8 +1,12 @@
-import ListingCardAirbnb from "./ListingCardAirbnb";
+import ListingCardAirbnb, { BookingStatus } from "./ListingCardAirbnb";
 import { Listing } from "@/data/listings";
 
+interface ExtendedListing extends Listing {
+  bookingStatus?: BookingStatus;
+}
+
 interface ListingsHomeProps {
-  listings: Listing[];
+  listings: ExtendedListing[];
 }
 
 const ListingsHome = ({ listings = [] }: ListingsHomeProps) => {
@@ -35,6 +39,7 @@ const ListingsHome = ({ listings = [] }: ListingsHomeProps) => {
             price={listing.price}
             period={listing.period}
             isAvailable={listing.isVerified}
+            bookingStatus={listing.bookingStatus}
           />
         ))}
       </div>
