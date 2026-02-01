@@ -57,17 +57,17 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
         if (agentBookings.length > 0) {
           setBookings(agentBookings);
           
-          // Total revenue = only completed/released payments (inspection passed) - rent amount only
+          // Total revenue = verified payments (inspection passed) - rent amount only
           const totalRevenue = agentBookings
-            .filter(b => b.payment_status === "completed")
+            .filter(b => b.payment_status === "verified")
             .reduce((sum, b) => sum + Number(b.rent_amount), 0);
           
           // Pending payments = awaiting inspection (submitted/pending but not failed) - rent amount only
           const pendingPayments = agentBookings
-            .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "failed")
+            .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "rejected")
             .reduce((sum, b) => sum + Number(b.rent_amount), 0);
           
-          const completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
+          const completedPayments = agentBookings.filter(b => b.payment_status === "verified").length;
 
           setStats({
             totalRevenue,
@@ -101,11 +101,11 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
   };
 
   const getStatusIcon = (booking: Booking) => {
-    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+    if (booking.payment_status === "rejected" || booking.inspection_status === "rejected") {
       return <XCircle className="w-4 h-4 text-red-500" />;
     }
     switch (booking.payment_status) {
-      case "completed":
+      case "verified":
         return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case "pending":
       case "submitted":
@@ -116,23 +116,23 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
   };
 
   const getStatusBadge = (booking: Booking) => {
-    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+    if (booking.payment_status === "rejected" || booking.inspection_status === "rejected") {
       return "bg-red-100 text-red-700";
     }
     const styles: Record<string, string> = {
-      completed: "bg-emerald-100 text-emerald-700",
+      verified: "bg-emerald-100 text-emerald-700",
       pending: "bg-amber-100 text-amber-700",
       submitted: "bg-amber-100 text-amber-700",
-      failed: "bg-red-100 text-red-700",
+      rejected: "bg-red-100 text-red-700",
     };
     return styles[booking.payment_status] || "bg-muted text-muted-foreground";
   };
   
   const getDisplayStatus = (booking: Booking) => {
-    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+    if (booking.payment_status === "rejected" || booking.inspection_status === "rejected") {
       return "Failed";
     }
-    if (booking.payment_status === "completed") {
+    if (booking.payment_status === "verified") {
       return "Released";
     }
     if (booking.payment_status === "pending" || booking.payment_status === "submitted") {
