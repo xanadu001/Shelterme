@@ -62,9 +62,9 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
             .filter(b => b.payment_status === "completed")
             .reduce((sum, b) => sum + Number(b.total_amount), 0);
           
-          // Pending payments = awaiting inspection (not failed)
+          // Pending payments = awaiting inspection (submitted/pending but not failed)
           const pendingPayments = agentBookings
-            .filter(b => b.payment_status === "pending" && b.inspection_status !== "failed")
+            .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "failed")
             .reduce((sum, b) => sum + Number(b.total_amount), 0);
           
           const completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
@@ -108,6 +108,7 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
       case "completed":
         return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case "pending":
+      case "submitted":
         return <Clock className="w-4 h-4 text-amber-500" />;
       default:
         return <XCircle className="w-4 h-4 text-red-500" />;
@@ -118,12 +119,13 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
     if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
       return "bg-red-100 text-red-700";
     }
-    const styles = {
+    const styles: Record<string, string> = {
       completed: "bg-emerald-100 text-emerald-700",
       pending: "bg-amber-100 text-amber-700",
+      submitted: "bg-amber-100 text-amber-700",
       failed: "bg-red-100 text-red-700",
     };
-    return styles[booking.payment_status as keyof typeof styles] || "bg-muted text-muted-foreground";
+    return styles[booking.payment_status] || "bg-muted text-muted-foreground";
   };
   
   const getDisplayStatus = (booking: Booking) => {
@@ -133,7 +135,7 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
     if (booking.payment_status === "completed") {
       return "Released";
     }
-    if (booking.payment_status === "pending") {
+    if (booking.payment_status === "pending" || booking.payment_status === "submitted") {
       return "Pending Inspection";
     }
     return booking.payment_status;

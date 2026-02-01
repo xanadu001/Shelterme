@@ -163,9 +163,9 @@ const DashboardPage = () => {
           .filter(b => b.payment_status === "completed")
           .reduce((sum, b) => sum + Number(b.total_amount), 0);
         
-        // Pending payments = awaiting inspection (payment submitted but not yet verified)
+        // Pending payments = awaiting inspection (payment submitted/pending but not yet verified)
         pendingPayments = agentBookings
-          .filter(b => b.payment_status === "pending" && b.inspection_status !== "failed")
+          .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "failed")
           .reduce((sum, b) => sum + Number(b.total_amount), 0);
         
         completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
@@ -254,6 +254,7 @@ const DashboardPage = () => {
       case "completed":
         return <CheckCircle className="w-4 h-4 text-primary" />;
       case "pending":
+      case "submitted":
         return <Clock className="w-4 h-4 text-amber-500" />;
       default:
         return <XCircle className="w-4 h-4 text-red-500" />;
@@ -264,12 +265,13 @@ const DashboardPage = () => {
     if (status === "failed" || inspectionStatus === "failed") {
       return "bg-red-100 text-red-700";
     }
-    const styles = {
+    const styles: Record<string, string> = {
       completed: "bg-primary/10 text-primary",
       pending: "bg-amber-100 text-amber-700",
+      submitted: "bg-amber-100 text-amber-700",
       failed: "bg-red-100 text-red-700",
     };
-    return styles[status as keyof typeof styles] || "bg-muted text-muted-foreground";
+    return styles[status] || "bg-muted text-muted-foreground";
   };
   
   const getDisplayStatus = (booking: Booking) => {
@@ -279,7 +281,7 @@ const DashboardPage = () => {
     if (booking.payment_status === "completed") {
       return "Released";
     }
-    if (booking.payment_status === "pending") {
+    if (booking.payment_status === "pending" || booking.payment_status === "submitted") {
       return "Pending Inspection";
     }
     return booking.payment_status;
