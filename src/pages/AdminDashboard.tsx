@@ -354,7 +354,12 @@ const AdminDashboard = () => {
 
       // If inspection passed, update payment status to allow release
       if (status === "passed") {
-        updateData.payment_status = "verified";
+        updateData.payment_status = "completed";
+      }
+      
+      // If inspection failed, mark payment as failed (clears pending amount for agent)
+      if (status === "failed") {
+        updateData.payment_status = "failed";
       }
 
       await supabase.from("bookings").update(updateData).eq("id", bookingId);
@@ -371,8 +376,8 @@ const AdminDashboard = () => {
         title: status === "passed" ? "Inspection Passed" : "Inspection Failed",
         description:
           status === "passed"
-            ? "Payment can now be released to the landlord."
-            : "The booking has been marked as failed inspection.",
+            ? "Payment has been released to the landlord."
+            : "The booking has been marked as failed. The pending payment has been cleared.",
       });
 
       fetchStats();

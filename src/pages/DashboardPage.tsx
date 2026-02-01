@@ -39,8 +39,10 @@ interface Booking {
   student_email: string;
   total_amount: number;
   payment_status: string;
+  inspection_status: string | null;
   created_at: string;
   move_in_date: string;
+  listing_id: string;
 }
 
 interface Inquiry {
@@ -140,34 +142,41 @@ const DashboardPage = () => {
         .select("*")
         .eq("owner_id", userId);
 
-      // Fetch bookings with full data
+      const propertyIds = properties?.map(p => p.id) || [];
+
+      // Fetch bookings for this agent's properties only
       const { data: bookingsData } = await supabase
         .from("bookings")
         .select("*")
         .order("created_at", { ascending: false });
 
+      // Filter bookings to only show those for this agent's properties
+      const agentBookings = bookingsData?.filter(b => propertyIds.includes(b.listing_id)) || [];
+
       let totalEarnings = 0;
       let pendingPayments = 0;
       let completedPayments = 0;
 
-      if (bookingsData) {
-        totalEarnings = bookingsData
+      if (agentBookings.length > 0) {
+        // Total earnings = completed payments (inspection passed)
+        totalEarnings = agentBookings
           .filter(b => b.payment_status === "completed")
           .reduce((sum, b) => sum + Number(b.total_amount), 0);
         
-        pendingPayments = bookingsData
-          .filter(b => b.payment_status === "pending")
+        // Pending payments = awaiting inspection (payment submitted but not yet verified)
+        pendingPayments = agentBookings
+          .filter(b => b.payment_status === "pending" && b.inspection_status !== "failed")
           .reduce((sum, b) => sum + Number(b.total_amount), 0);
         
-        completedPayments = bookingsData.filter(b => b.payment_status === "completed").length;
+        completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
         
-        setRecentBookings(bookingsData.slice(0, 3));
+        setRecentBookings(agentBookings.slice(0, 3));
       }
 
       if (properties) {
         setStats({
           totalListings: properties.length,
-          activeBookings: bookingsData?.length || 0,
+          activeBookings: agentBookings.length,
           totalEarnings: totalEarnings,
           earningsGrowth: 12,
           pendingPayments: pendingPayments,
@@ -237,7 +246,10 @@ const DashboardPage = () => {
     });
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: string, inspectionStatus?: string | null) => {
+    if (status === "failed" || inspectionStatus === "failed") {
+      return <XCircle className="w-4 h-4 text-red-500" />;
+    }
     switch (status) {
       case "completed":
         return <CheckCircle className="w-4 h-4 text-primary" />;
@@ -248,13 +260,29 @@ const DashboardPage = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, inspectionStatus?: string | null) => {
+    if (status === "failed" || inspectionStatus === "failed") {
+      return "bg-red-100 text-red-700";
+    }
     const styles = {
       completed: "bg-primary/10 text-primary",
       pending: "bg-amber-100 text-amber-700",
       failed: "bg-red-100 text-red-700",
     };
     return styles[status as keyof typeof styles] || "bg-muted text-muted-foreground";
+  };
+  
+  const getDisplayStatus = (booking: Booking) => {
+    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+      return "Failed";
+    }
+    if (booking.payment_status === "completed") {
+      return "Released";
+    }
+    if (booking.payment_status === "pending") {
+      return "Pending Inspection";
+    }
+    return booking.payment_status;
   };
 
   const getInitials = (email: string) => {
@@ -410,9 +438,9 @@ const DashboardPage = () => {
                     <h4 className="font-medium text-foreground text-sm">{booking.student_name}</h4>
                     <p className="text-xs text-muted-foreground">{booking.student_email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getStatusBadge(booking.payment_status)}`}>
-                    {getStatusIcon(booking.payment_status)}
-                    {booking.payment_status}
+                  <span className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${getStatusBadge(booking.payment_status, booking.inspection_status)}`}>
+                    {getStatusIcon(booking.payment_status, booking.inspection_status)}
+                    {getDisplayStatus(booking)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
