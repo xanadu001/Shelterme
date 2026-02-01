@@ -124,6 +124,7 @@ export type Database = {
           title: string
           university: string
           updated_at: string
+          videos: string[] | null
           views_count: number | null
         }
         Insert: {
@@ -145,6 +146,7 @@ export type Database = {
           title: string
           university: string
           updated_at?: string
+          videos?: string[] | null
           views_count?: number | null
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           title?: string
           university?: string
           updated_at?: string
+          videos?: string[] | null
           views_count?: number | null
         }
         Relationships: []

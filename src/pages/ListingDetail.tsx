@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3, ShieldCheck, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Heart, Share, MapPin, Bed, Bath, Maximize, Check, MessageCircle, Phone, Grid3X3, ShieldCheck, AlertTriangle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListingById } from "@/data/listings";
 import { useState, useEffect } from "react";
@@ -18,6 +18,7 @@ interface PropertyData {
   size: string | null;
   amenities: string[] | null;
   images: string[] | null;
+  videos: string[] | null;
   is_verified: boolean | null;
   is_available: boolean | null;
 }
@@ -61,6 +62,7 @@ const ListingDetail = () => {
             size: data.size || "N/A",
             amenities: data.amenities || [],
             images: data.images && data.images.length > 0 ? data.images : ["/placeholder.svg"],
+            videos: data.videos || [],
             isVerified: data.is_verified,
             isAvailable: data.is_available,
             ownerId: data.owner_id,
@@ -291,12 +293,30 @@ const ListingDetail = () => {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </button>
-            <span className="text-sm text-muted-foreground">{listing.images.length} photos</span>
+            <span className="text-sm text-muted-foreground">
+              {listing.images.length} photos{listing.videos?.length > 0 ? `, ${listing.videos.length} videos` : ''}
+            </span>
           </div>
-          <div className="p-4 space-y-2 max-w-4xl mx-auto">
+          <div className="p-4 space-y-4 max-w-4xl mx-auto">
+            {/* Videos first */}
+            {listing.videos?.map((video: string, index: number) => (
+              <div key={`video-${index}`} className="relative">
+                <video
+                  src={video}
+                  controls
+                  className="w-full rounded-lg"
+                  poster={listing.images[0]}
+                />
+                <div className="absolute top-3 left-3 bg-black/70 text-white px-2 py-1 rounded text-xs font-medium flex items-center gap-1">
+                  <Play className="w-3 h-3" />
+                  Video {index + 1}
+                </div>
+              </div>
+            ))}
+            {/* Then images */}
             {listing.images.map((image: string, index: number) => (
               <img
-                key={index}
+                key={`image-${index}`}
                 src={image}
                 alt={`${listing.title} - ${index + 1}`}
                 className="w-full rounded-lg"

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Building2, Image as ImageIcon } from "lucide-react";
+import { X, Building2, Image as ImageIcon, Video } from "lucide-react";
 import { toast } from "sonner";
 
 
@@ -39,6 +39,7 @@ interface PropertyFormProps {
 const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideos, setUploadingVideos] = useState(false);
   const [userUniversity, setUserUniversity] = useState<string>("");
   const [formData, setFormData] = useState({
     title: "",
@@ -52,6 +53,7 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
     size: "",
     amenities: [] as string[],
     images: [] as string[],
+    videos: [] as string[],
   });
 
   // Fetch user's registered university from profile
@@ -88,6 +90,7 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
         size: property.size || "",
         amenities: property.amenities || [],
         images: property.images || [],
+        videos: property.videos || [],
       });
     }
   }, [property, userUniversity]);
@@ -136,6 +139,56 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
     }));
   };
 
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !user) return;
+
+    setUploadingVideos(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        // Check file size (max 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+          toast.error(`${file.name} is too large. Max size is 50MB`);
+          continue;
+        }
+
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("property-videos")
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("property-videos")
+          .getPublicUrl(fileName);
+
+        uploadedUrls.push(publicUrl);
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        videos: [...prev.videos, ...uploadedUrls],
+      }));
+      toast.success("Videos uploaded successfully");
+    } catch (error: any) {
+      toast.error("Failed to upload videos");
+    } finally {
+      setUploadingVideos(false);
+    }
+  };
+
+  const removeVideo = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index),
+    }));
+  };
+
   const toggleAmenity = (amenity: string) => {
     setFormData(prev => ({
       ...prev,
@@ -164,6 +217,7 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
         size: formData.size || null,
         amenities: formData.amenities,
         images: formData.images,
+        videos: formData.videos,
       };
 
       if (property) {
@@ -356,6 +410,43 @@ const PropertyForm = ({ user, property, onClose }: PropertyFormProps) => {
                   <>
                     <ImageIcon className="h-6 w-6 text-muted-foreground mb-1" />
                     <span className="text-xs text-muted-foreground">Add Images</span>
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+
+          {/* Videos */}
+          <div className="space-y-3">
+            <Label>Property Videos (max 50MB each)</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {formData.videos.map((url, index) => (
+                <div key={index} className="relative aspect-video rounded-lg overflow-hidden group bg-muted">
+                  <video src={url} className="w-full h-full object-cover" controls />
+                  <button
+                    type="button"
+                    onClick={() => removeVideo(index)}
+                    className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              <label className="aspect-video rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                <input
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  disabled={uploadingVideos}
+                />
+                {uploadingVideos ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                ) : (
+                  <>
+                    <Video className="h-6 w-6 text-muted-foreground mb-1" />
+                    <span className="text-xs text-muted-foreground">Add Videos</span>
                   </>
                 )}
               </label>
