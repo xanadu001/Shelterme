@@ -343,8 +343,11 @@ const AdminDashboard = () => {
     notes?: string
   ) => {
     try {
+      // Map UI status to database-valid values
+      const dbInspectionStatus = status === "passed" ? "approved" : status === "failed" ? "rejected" : status;
+      
       const updateData: any = {
-        inspection_status: status,
+        inspection_status: dbInspectionStatus,
         inspection_date: new Date().toISOString(),
       };
 
@@ -352,14 +355,14 @@ const AdminDashboard = () => {
         updateData.inspection_notes = notes;
       }
 
-      // If inspection passed, update payment status to allow release
+      // If inspection passed, update payment status to verified (releases payment to agent)
       if (status === "passed") {
-        updateData.payment_status = "completed";
+        updateData.payment_status = "verified";
       }
       
-      // If inspection failed, mark payment as failed (clears pending amount for agent)
+      // If inspection failed, mark payment as rejected (clears pending amount for agent)
       if (status === "failed") {
-        updateData.payment_status = "failed";
+        updateData.payment_status = "rejected";
       }
 
       await supabase.from("bookings").update(updateData).eq("id", bookingId);

@@ -212,15 +212,15 @@ const StudentDashboard = () => {
                     {formatCurrency(booking.total_amount)}
                   </p>
                   <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${
-                    booking.payment_status === "completed"
+                    booking.payment_status === "verified"
                       ? "bg-primary/20 text-primary"
-                      : booking.payment_status === "failed"
+                      : booking.payment_status === "rejected"
                       ? "bg-red-100 text-red-700"
                       : "bg-amber-100 text-amber-700"
                   }`}>
-                    {booking.payment_status === "completed" 
+                    {booking.payment_status === "verified" 
                       ? "Completed" 
-                      : booking.payment_status === "failed"
+                      : booking.payment_status === "rejected"
                       ? "Failed"
                       : "Pending Inspection"}
                   </span>

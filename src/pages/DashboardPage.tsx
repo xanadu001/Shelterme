@@ -158,17 +158,17 @@ const DashboardPage = () => {
       let completedPayments = 0;
 
       if (agentBookings.length > 0) {
-        // Total earnings = completed payments (inspection passed) - only rent amount, not service fee
+        // Total earnings = verified payments (inspection passed) - only rent amount, not service fee
         totalEarnings = agentBookings
-          .filter(b => b.payment_status === "completed")
+          .filter(b => b.payment_status === "verified")
           .reduce((sum, b) => sum + Number(b.rent_amount), 0);
         
         // Pending payments = awaiting inspection (payment submitted/pending but not yet verified) - only rent amount
         pendingPayments = agentBookings
-          .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "failed")
+          .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "rejected")
           .reduce((sum, b) => sum + Number(b.rent_amount), 0);
         
-        completedPayments = agentBookings.filter(b => b.payment_status === "completed").length;
+        completedPayments = agentBookings.filter(b => b.payment_status === "verified").length;
         
         setRecentBookings(agentBookings.slice(0, 3));
       }
@@ -247,11 +247,11 @@ const DashboardPage = () => {
   };
 
   const getStatusIcon = (status: string, inspectionStatus?: string | null) => {
-    if (status === "failed" || inspectionStatus === "failed") {
+    if (status === "rejected" || inspectionStatus === "rejected") {
       return <XCircle className="w-4 h-4 text-red-500" />;
     }
     switch (status) {
-      case "completed":
+      case "verified":
         return <CheckCircle className="w-4 h-4 text-primary" />;
       case "pending":
       case "submitted":
@@ -262,23 +262,23 @@ const DashboardPage = () => {
   };
 
   const getStatusBadge = (status: string, inspectionStatus?: string | null) => {
-    if (status === "failed" || inspectionStatus === "failed") {
+    if (status === "rejected" || inspectionStatus === "rejected") {
       return "bg-red-100 text-red-700";
     }
     const styles: Record<string, string> = {
-      completed: "bg-primary/10 text-primary",
+      verified: "bg-primary/10 text-primary",
       pending: "bg-amber-100 text-amber-700",
       submitted: "bg-amber-100 text-amber-700",
-      failed: "bg-red-100 text-red-700",
+      rejected: "bg-red-100 text-red-700",
     };
     return styles[status] || "bg-muted text-muted-foreground";
   };
   
   const getDisplayStatus = (booking: Booking) => {
-    if (booking.payment_status === "failed" || booking.inspection_status === "failed") {
+    if (booking.payment_status === "rejected" || booking.inspection_status === "rejected") {
       return "Failed";
     }
-    if (booking.payment_status === "completed") {
+    if (booking.payment_status === "verified") {
       return "Released";
     }
     if (booking.payment_status === "pending" || booking.payment_status === "submitted") {
