@@ -5,10 +5,10 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Users, 
-  Building2, 
-  CalendarCheck, 
+import {
+  Users,
+  Building2,
+  CalendarCheck,
   TrendingUp,
   Shield,
   Settings,
@@ -29,11 +29,30 @@ import {
   UserX,
   Clock,
   CheckCircle2,
-  Ban
+  Ban,
+  Bell,
+  HelpCircle,
+  GraduationCap,
+  DollarSign,
+  Menu,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
+// --- Types (unchanged) ---
 interface AdminStats {
   totalUsers: number;
   totalStudents: number;
@@ -42,6 +61,8 @@ interface AdminStats {
   totalBookings: number;
   pendingVerifications: number;
   pendingInspections: number;
+  monthlyRevenue: number;
+  occupancyRate: number;
 }
 
 interface UserWithRole {
@@ -91,6 +112,120 @@ interface BookingData {
   property?: PropertyData;
 }
 
+// --- Sidebar Nav ---
+const navItems = [
+  { id: "overview", label: "Overview", icon: BarChart3 },
+  { id: "properties", label: "Properties", icon: Building2 },
+  { id: "bookings", label: "Bookings", icon: CalendarCheck },
+  { id: "users", label: "Students", icon: GraduationCap },
+  { id: "inspections", label: "Inspections", icon: ClipboardCheck },
+];
+
+const AdminSidebar = ({
+  activeTab,
+  onTabChange,
+  user,
+}: {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  user: User | null;
+}) => {
+  const getInitials = (email: string) => email?.substring(0, 2).toUpperCase() || "AD";
+
+  return (
+    <Sidebar className="border-r border-border bg-background" collapsible="icon">
+      <SidebarContent className="flex flex-col h-full">
+        {/* Logo */}
+        <div className="px-5 py-6 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <Shield className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div className="overflow-hidden">
+            <h1 className="text-base font-bold text-foreground leading-tight">ShelterMe</h1>
+            <p className="text-xs text-muted-foreground">Admin Panel</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <SidebarGroup className="flex-1">
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1 px-3">
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => onTabChange(item.id)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === item.id
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 flex-shrink-0" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Settings */}
+        <div className="px-3 pb-3">
+          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted w-full transition-colors">
+            <Settings className="w-5 h-5" />
+            <span>Settings</span>
+          </button>
+        </div>
+
+        {/* User */}
+        <div className="px-5 py-4 border-t border-border flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary flex-shrink-0">
+            {getInitials(user?.email || "")}
+          </div>
+          <div className="overflow-hidden">
+            <p className="text-sm font-medium text-foreground truncate">{user?.email?.split("@")[0] || "Admin"}</p>
+            <p className="text-xs text-muted-foreground">Super Admin</p>
+          </div>
+        </div>
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
+// --- Stat Card ---
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  growth,
+  iconBg,
+}: {
+  title: string;
+  value: string | number;
+  icon: any;
+  growth?: string;
+  iconBg: string;
+}) => (
+  <div className="bg-background border border-border rounded-xl p-5 flex items-start justify-between">
+    <div className="flex items-start gap-4">
+      <div className={`w-11 h-11 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+        <Icon className="w-5 h-5 text-primary-foreground" />
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{title}</p>
+        <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
+      </div>
+    </div>
+    {growth && (
+      <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full flex items-center gap-1">
+        <TrendingUp className="w-3 h-3" />
+        {growth}
+      </span>
+    )}
+  </div>
+);
+
+// --- Main Component ---
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -104,6 +239,8 @@ const AdminDashboard = () => {
     totalBookings: 0,
     pendingVerifications: 0,
     pendingInspections: 0,
+    monthlyRevenue: 0,
+    occupancyRate: 0,
   });
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [properties, setProperties] = useState<PropertyData[]>([]);
@@ -111,6 +248,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -188,6 +326,17 @@ const AdminDashboard = () => {
       supabase.from("bookings").select("*", { count: "exact", head: true }).eq("inspection_status", "pending"),
     ]);
 
+    // Get monthly revenue from verified bookings
+    const { data: verifiedBookings } = await supabase
+      .from("bookings")
+      .select("rent_amount")
+      .eq("payment_status", "verified");
+    
+    const monthlyRevenue = verifiedBookings?.reduce((sum, b) => sum + Number(b.rent_amount), 0) || 0;
+    const totalProps = propertiesCount || 0;
+    const bookedProps = bookingsCount || 0;
+    const occupancyRate = totalProps > 0 ? Math.round((bookedProps / totalProps) * 100) : 0;
+
     setStats({
       totalUsers: usersCount || 0,
       totalStudents: studentsCount || 0,
@@ -196,6 +345,8 @@ const AdminDashboard = () => {
       totalBookings: bookingsCount || 0,
       pendingVerifications: pendingCount || 0,
       pendingInspections: pendingInspectionsCount || 0,
+      monthlyRevenue,
+      occupancyRate: Math.min(occupancyRate, 100),
     });
   };
 
@@ -238,7 +389,6 @@ const AdminDashboard = () => {
       .select("*")
       .order("created_at", { ascending: false });
 
-    // Fetch property details for each booking
     const bookingsWithProperties = await Promise.all(
       (bookingsData || []).map(async (booking) => {
         const { data: property } = await supabase
@@ -343,9 +493,8 @@ const AdminDashboard = () => {
     notes?: string
   ) => {
     try {
-      // Map UI status to database-valid values
       const dbInspectionStatus = status === "passed" ? "approved" : status === "failed" ? "rejected" : status;
-      
+
       const updateData: any = {
         inspection_status: dbInspectionStatus,
         inspection_date: new Date().toISOString(),
@@ -355,17 +504,14 @@ const AdminDashboard = () => {
         updateData.inspection_notes = notes;
       }
 
-      // If inspection passed, update payment status to verified (releases payment to agent)
       if (status === "passed") {
         updateData.payment_status = "verified";
       }
-      
-      // If inspection failed, mark payment as rejected (clears pending amount for agent)
+
       if (status === "failed") {
         updateData.payment_status = "rejected";
       }
 
-      // IMPORTANT: supabase-js does not throw on error; we must check the response.
       const { data: updatedBooking, error } = await supabase
         .from("bookings")
         .update(updateData)
@@ -378,17 +524,14 @@ const AdminDashboard = () => {
       if (error) throw error;
       if (!updatedBooking) throw new Error("Booking update failed: no row returned");
 
-      // Update property availability based on inspection result
       const listingId = updatedBooking.listing_id;
-      if (listingId && listingId.length > 10) { // UUID check for database properties
+      if (listingId && listingId.length > 10) {
         if (status === "passed") {
-          // Property is now taken - mark as unavailable
           await supabase
             .from("properties")
             .update({ is_available: false })
             .eq("id", listingId);
         } else if (status === "failed") {
-          // Inspection failed - make property available again
           await supabase
             .from("properties")
             .update({ is_available: true })
@@ -422,10 +565,6 @@ const AdminDashboard = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
-  };
-
-  const getInitials = (email: string) => {
-    return email?.substring(0, 2).toUpperCase() || "AD";
   };
 
   const filteredUsers = users.filter((u) => {
@@ -463,6 +602,38 @@ const AdminDashboard = () => {
     return matchesSearch && matchesFilter;
   });
 
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+
+  const getBookingDisplayStatus = (booking: BookingData) => {
+    if (booking.inspection_status === "approved" || booking.payment_status === "verified") return "Confirmed";
+    if (booking.inspection_status === "rejected" || booking.payment_status === "rejected") return "Rejected";
+    if (booking.payment_status === "pending" || booking.payment_status === "submitted") return "Pending";
+    return booking.payment_status || "Processing";
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Confirmed": return "bg-primary/10 text-primary border-primary/20";
+      case "Pending": return "bg-amber-50 text-amber-700 border-amber-200";
+      case "Rejected": return "bg-destructive/10 text-destructive border-destructive/20";
+      default: return "bg-blue-50 text-blue-700 border-blue-200";
+    }
+  };
+
+  // Mock occupancy chart data
+  const occupancyChartData = [
+    { month: "Jan", value: 65 }, { month: "Feb", value: 70 }, { month: "Mar", value: 55 },
+    { month: "Apr", value: 80 }, { month: "May", value: 75 }, { month: "Jun", value: 85 },
+    { month: "Jul", value: 90 }, { month: "Aug", value: 88 }, { month: "Sep", value: 92 },
+    { month: "Oct", value: 78 },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -471,692 +642,550 @@ const AdminDashboard = () => {
     );
   }
 
-  const tabs = [
-    { id: "overview", label: "Overview", icon: BarChart3 },
-    { id: "users", label: "Users", icon: Users },
-    { id: "properties", label: "Properties", icon: Building2 },
-    { id: "bookings", label: "Bookings", icon: CalendarCheck },
-    { id: "inspections", label: "Inspections", icon: ClipboardCheck },
-  ];
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchQuery("");
+    setFilterStatus("all");
+    setMobileMenuOpen(false);
+  };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="bg-slate-900 text-white px-4 py-4 sticky top-0 z-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">Admin Dashboard</h1>
-              <p className="text-xs text-slate-400">ShelterMe Management</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-slate-400 hover:text-white"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-            <div className="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium">
-              {getInitials(user?.email || "")}
-            </div>
-          </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-muted/30">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <AdminSidebar activeTab={activeTab} onTabChange={handleTabChange} user={user} />
         </div>
-      </header>
 
-      {/* Navigation Tabs */}
-      <div className="bg-background border-b border-border px-4 overflow-x-auto">
-        <div className="flex gap-1 min-w-max">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setSearchQuery("");
-                setFilterStatus("all");
-              }}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
+        {/* Mobile sidebar overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
+            <div className="absolute left-0 top-0 bottom-0 w-64 bg-background shadow-xl">
+              <div className="p-4 flex justify-end">
+                <button onClick={() => setMobileMenuOpen(false)}>
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+              <div className="space-y-1 px-3">
+                {navItems.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
+                      activeTab === item.id
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top header */}
+          <header className="bg-background border-b border-border px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-40">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setMobileMenuOpen(true)} className="lg:hidden">
+                <Menu className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <h2 className="text-lg lg:text-xl font-semibold text-foreground">
+                {navItems.find(n => n.id === activeTab)?.label || "Dashboard Overview"}
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search properties, students..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-64 bg-muted/50 border-border"
+                />
+              </div>
+              <button className="relative w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                {stats.pendingInspections > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-medium">
+                    {stats.pendingInspections}
+                  </span>
+                )}
+              </button>
+              <button className="w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+                <HelpCircle className="w-4 h-4 text-muted-foreground" />
+              </button>
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          </header>
+
+          {/* Mobile search */}
+          <div className="md:hidden px-4 pt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-muted/50"
+              />
+            </div>
+          </div>
+
+          {/* Content area */}
+          <main className="flex-1 p-4 lg:p-8 space-y-6 overflow-auto">
+            {/* ===== OVERVIEW TAB ===== */}
+            {activeTab === "overview" && (
+              <>
+                {/* Stats row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <StatCard
+                    title="Total Properties"
+                    value={stats.totalProperties}
+                    icon={Building2}
+                    growth="+5%"
+                    iconBg="bg-primary"
+                  />
+                  <StatCard
+                    title="Active Bookings"
+                    value={stats.totalBookings}
+                    icon={CalendarCheck}
+                    growth="+12%"
+                    iconBg="bg-blue-500"
+                  />
+                  <StatCard
+                    title="Occupancy Rate"
+                    value={`${stats.occupancyRate}%`}
+                    icon={TrendingUp}
+                    growth="+2%"
+                    iconBg="bg-primary"
+                  />
+                  <StatCard
+                    title="Monthly Revenue"
+                    value={formatCurrency(stats.monthlyRevenue)}
+                    icon={DollarSign}
+                    growth="+8%"
+                    iconBg="bg-primary"
+                  />
+                </div>
+
+                {/* Recent Bookings + Chart */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  {/* Recent Bookings Table */}
+                  <div className="xl:col-span-2 bg-background border border-border rounded-xl overflow-hidden">
+                    <div className="px-6 py-4 flex items-center justify-between border-b border-border">
+                      <h3 className="font-semibold text-foreground">Recent Bookings</h3>
+                      <button
+                        onClick={() => handleTabChange("bookings")}
+                        className="text-sm text-primary font-medium hover:underline"
+                      >
+                        View All
+                      </button>
+                    </div>
+
+                    {/* Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Student Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Property</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Check-in Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {bookings.slice(0, 5).map((booking) => {
+                            const displayStatus = getBookingDisplayStatus(booking);
+                            return (
+                              <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary flex-shrink-0">
+                                      {booking.student_name?.split(" ").map(n => n[0]).join("").substring(0, 2)}
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-foreground">{booking.student_name}</p>
+                                      <p className="text-xs text-muted-foreground">ID: #{booking.id.substring(0, 4)}</p>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <p className="text-foreground">{booking.property?.title || "Property"}</p>
+                                </td>
+                                <td className="px-6 py-4 text-muted-foreground">
+                                  {format(new Date(booking.move_in_date), "MMM d, yyyy")}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(displayStatus)}`}>
+                                    {displayStatus}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                          {bookings.length === 0 && (
+                            <tr>
+                              <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                                No bookings yet
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Occupancy Trends Chart */}
+                  <div className="bg-background border border-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold text-foreground">Occupancy Trends</h3>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">This Year</span>
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={occupancyChartData}>
+                          <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis hide />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                            }}
+                          />
+                          <Bar dataKey="value" fill="hsl(142, 96%, 37%)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ===== USERS TAB ===== */}
+            {activeTab === "users" && (
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {["all", "student", "landlord", "agent", "verified", "unverified", "suspended"].map(
+                      (status) => (
+                        <Button
+                          key={status}
+                          variant={filterStatus === status ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setFilterStatus(status)}
+                          className="capitalize whitespace-nowrap"
+                        >
+                          {status}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">User</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No users found</td>
+                          </tr>
+                        ) : (
+                          filteredUsers.map((u) => (
+                            <tr key={u.id} className={`hover:bg-muted/30 transition-colors ${u.suspended ? "bg-destructive/5" : ""}`}>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                                    {u.full_name?.split(" ").map(n => n[0]).join("").substring(0, 2) || "?"}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-foreground">{u.full_name}</p>
+                                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge variant={u.role === "admin" ? "default" : "secondary"} className="capitalize text-xs">
+                                  {u.role}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4 text-muted-foreground text-xs">{u.phone}</td>
+                              <td className="px-6 py-4 text-muted-foreground text-xs">{format(new Date(u.created_at), "MMM d, yyyy")}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-1">
+                                  {u.verified && <CheckCircle2 className="w-4 h-4 text-primary" />}
+                                  {u.suspended && <Badge variant="destructive" className="text-xs">Suspended</Badge>}
+                                  {!u.verified && !u.suspended && <span className="text-xs text-muted-foreground">Unverified</span>}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-1">
+                                  {u.role !== "admin" && (
+                                    <Button size="sm" variant={u.verified ? "outline" : "default"} className="h-7 text-xs" onClick={() => handleVerifyUser(u.id, !u.verified)}>
+                                      {u.verified ? <UserX className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
+                                    </Button>
+                                  )}
+                                  {(u.role === "landlord" || u.role === "agent") && (
+                                    <Button size="sm" variant={u.suspended ? "outline" : "destructive"} className="h-7 text-xs" onClick={() => handleSuspendUser(u.id, !u.suspended)}>
+                                      <Ban className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===== PROPERTIES TAB ===== */}
+            {activeTab === "properties" && (
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  {["all", "pending", "verified"].map((status) => (
+                    <Button key={status} variant={filterStatus === status ? "default" : "outline"} size="sm" onClick={() => setFilterStatus(status)} className="capitalize">
+                      {status}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Property</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Location</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Price</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredProperties.length === 0 ? (
+                          <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No properties found</td></tr>
+                        ) : (
+                          filteredProperties.map((property) => (
+                            <tr key={property.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                                    {property.images?.[0] ? (
+                                      <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center"><Building2 className="w-4 h-4 text-muted-foreground" /></div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-foreground line-clamp-1">{property.title}</p>
+                                    <p className="text-xs text-muted-foreground">{property.bedrooms}bd • {property.bathrooms}ba</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-muted-foreground text-xs">{property.location}</td>
+                              <td className="px-6 py-4 font-medium text-foreground">₦{property.price.toLocaleString()}/yr</td>
+                              <td className="px-6 py-4">
+                                <Badge variant={property.is_verified ? "default" : "secondary"}>
+                                  {property.is_verified ? "Verified" : "Pending"}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-1">
+                                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/listing/${property.id}`)}>
+                                    <Eye className="w-3 h-3" />
+                                  </Button>
+                                  {!property.is_verified && (
+                                    <>
+                                      <Button size="sm" className="h-7 text-xs" onClick={() => handleVerifyProperty(property.id, true)}>
+                                        <CheckCircle className="w-3 h-3" />
+                                      </Button>
+                                      <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => handleVerifyProperty(property.id, false)}>
+                                        <XCircle className="w-3 h-3" />
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===== BOOKINGS TAB ===== */}
+            {activeTab === "bookings" && (
+              <div className="space-y-4">
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {["all", "pending", "paid", "verified", "completed"].map((status) => (
+                    <Button key={status} variant={filterStatus === status ? "default" : "outline"} size="sm" onClick={() => setFilterStatus(status)} className="capitalize whitespace-nowrap">
+                      {status}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Student</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Property</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Move-in</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Payment</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Inspection</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredBookings.length === 0 ? (
+                          <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No bookings found</td></tr>
+                        ) : (
+                          filteredBookings.map((booking) => (
+                            <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <div>
+                                  <p className="font-medium text-foreground">{booking.student_name}</p>
+                                  <p className="text-xs text-muted-foreground">{booking.student_email}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-muted-foreground">{booking.property?.title || "Property"}</td>
+                              <td className="px-6 py-4 text-muted-foreground">{format(new Date(booking.move_in_date), "MMM d, yyyy")}</td>
+                              <td className="px-6 py-4 font-medium text-foreground">₦{booking.total_amount.toLocaleString()}</td>
+                              <td className="px-6 py-4">
+                                <Badge variant={booking.payment_status === "verified" ? "default" : "secondary"}>
+                                  {booking.payment_status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge variant={booking.inspection_status === "approved" ? "default" : booking.inspection_status === "rejected" ? "destructive" : "secondary"}>
+                                  {booking.inspection_status || "pending"}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ===== INSPECTIONS TAB ===== */}
+            {activeTab === "inspections" && (
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  {["all", "pending", "passed", "failed"].map((status) => (
+                    <Button key={status} variant={filterStatus === status ? "default" : "outline"} size="sm" onClick={() => setFilterStatus(status)} className="capitalize">
+                      {status}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Property</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Student</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {bookings
+                          .filter((b) =>
+                            filterStatus === "all"
+                              ? true
+                              : b.inspection_status === filterStatus ||
+                                (filterStatus === "pending" && (!b.inspection_status || b.inspection_status === "pending"))
+                          )
+                          .filter(
+                            (b) =>
+                              b.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              b.property?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+                          )
+                          .map((booking) => (
+                            <tr key={booking.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <div>
+                                  <p className="font-medium text-foreground">{booking.property?.title || "Property"}</p>
+                                  <p className="text-xs text-muted-foreground">{booking.property?.location}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div>
+                                  <p className="text-foreground">{booking.student_name}</p>
+                                  <p className="text-xs text-muted-foreground">{booking.student_phone}</p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 font-medium text-foreground">₦{booking.total_amount.toLocaleString()}</td>
+                              <td className="px-6 py-4">
+                                <Badge variant={booking.inspection_status === "approved" ? "default" : booking.inspection_status === "rejected" ? "destructive" : "secondary"}>
+                                  {booking.inspection_status || "pending"}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4">
+                                {(!booking.inspection_status || booking.inspection_status === "pending") ? (
+                                  <div className="flex items-center gap-1">
+                                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => navigate(`/listing/${booking.listing_id}`)}>
+                                      <Eye className="w-3 h-3" />
+                                    </Button>
+                                    <Button size="sm" className="h-7 text-xs" onClick={() => handleInspectionUpdate(booking.id, "passed", "Property verified and approved.")}>
+                                      <CheckCircle className="w-3 h-3 mr-1" /> Pass
+                                    </Button>
+                                    <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => handleInspectionUpdate(booking.id, "failed", "Property did not meet standards.")}>
+                                      <XCircle className="w-3 h-3 mr-1" /> Fail
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground italic">
+                                    {booking.inspection_status === "approved" ? "✓ Passed" : "✗ Failed"}
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
         </div>
       </div>
-
-      <main className="p-4 space-y-6 pb-20">
-        {/* Overview Tab */}
-        {activeTab === "overview" && (
-          <>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { title: "Total Users", value: stats.totalUsers, icon: Users, color: "bg-blue-500" },
-                { title: "Students", value: stats.totalStudents, icon: Users, color: "bg-primary" },
-                { title: "Landlords", value: stats.totalLandlords, icon: Building2, color: "bg-purple-500" },
-                { title: "Properties", value: stats.totalProperties, icon: Building2, color: "bg-indigo-500" },
-                { title: "Bookings", value: stats.totalBookings, icon: CalendarCheck, color: "bg-teal-500" },
-                { title: "Pending Review", value: stats.pendingVerifications, icon: AlertTriangle, color: "bg-amber-500" },
-                { title: "Pending Inspections", value: stats.pendingInspections, icon: ClipboardCheck, color: "bg-orange-500" },
-              ].map((stat, index) => (
-                <div
-                  key={index}
-                  className="bg-background rounded-xl p-4 border border-border"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}>
-                      <stat.icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                      <p className="text-xs text-muted-foreground">{stat.title}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-primary to-emerald-500 rounded-xl p-5 text-primary-foreground">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="w-5 h-5" />
-                <span className="font-medium">Platform Status</span>
-              </div>
-              <p className="text-2xl font-bold">Active</p>
-              <p className="text-sm text-primary-foreground/80">
-                All systems operational
-              </p>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-foreground">Quick Actions</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 flex flex-col gap-2"
-                  onClick={() => setActiveTab("properties")}
-                >
-                  <Building2 className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Review Properties</span>
-                  {stats.pendingVerifications > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {stats.pendingVerifications}
-                    </Badge>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-auto py-4 flex flex-col gap-2"
-                  onClick={() => setActiveTab("inspections")}
-                >
-                  <ClipboardCheck className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Manage Inspections</span>
-                  {stats.pendingInspections > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      {stats.pendingInspections}
-                    </Badge>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Users Tab */}
-        {activeTab === "users" && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {["all", "student", "landlord", "agent", "verified", "unverified", "suspended"].map(
-                  (status) => (
-                    <Button
-                      key={status}
-                      variant={filterStatus === status ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFilterStatus(status)}
-                      className="capitalize whitespace-nowrap"
-                    >
-                      {status}
-                    </Button>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {filteredUsers.length === 0 ? (
-                <div className="bg-background rounded-xl p-8 text-center border border-border">
-                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No users found</p>
-                </div>
-              ) : (
-                filteredUsers.map((u) => (
-                  <div
-                    key={u.id}
-                    className={`bg-background rounded-xl p-4 border ${u.suspended ? 'border-destructive/50 bg-destructive/5' : 'border-border'}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium text-foreground">
-                            {u.full_name}
-                          </h3>
-                          <Badge
-                            variant={u.role === "admin" ? "default" : "secondary"}
-                            className="capitalize text-xs"
-                          >
-                            {u.role}
-                          </Badge>
-                          {u.verified && (
-                            <CheckCircle2 className="w-4 h-4 text-primary" />
-                          )}
-                          {u.suspended && (
-                            <Badge variant="destructive" className="text-xs">
-                              Suspended
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          {u.email}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Phone className="w-3 h-3" />
-                          {u.phone}
-                        </div>
-                        {u.company_name && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Building2 className="w-3 h-3" />
-                            {u.company_name}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          Joined {format(new Date(u.created_at), "MMM d, yyyy")}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        {u.role !== "admin" && (
-                          <Button
-                            size="sm"
-                            variant={u.verified ? "outline" : "default"}
-                            onClick={() => handleVerifyUser(u.id, !u.verified)}
-                            title={u.verified ? "Remove verification" : "Verify user"}
-                          >
-                            {u.verified ? (
-                              <UserX className="w-4 h-4" />
-                            ) : (
-                              <UserCheck className="w-4 h-4" />
-                            )}
-                          </Button>
-                        )}
-                        {(u.role === "landlord" || u.role === "agent") && (
-                          <Button
-                            size="sm"
-                            variant={u.suspended ? "outline" : "destructive"}
-                            onClick={() => handleSuspendUser(u.id, !u.suspended)}
-                            title={u.suspended ? "Unsuspend user" : "Suspend user"}
-                          >
-                            <Ban className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Properties Tab */}
-        {activeTab === "properties" && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search properties..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-2">
-                {["all", "pending", "verified"].map((status) => (
-                  <Button
-                    key={status}
-                    variant={filterStatus === status ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus(status)}
-                    className="capitalize"
-                  >
-                    {status}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {filteredProperties.length === 0 ? (
-                <div className="bg-background rounded-xl p-8 text-center border border-border">
-                  <Building2 className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No properties found</p>
-                </div>
-              ) : (
-                filteredProperties.map((property) => (
-                  <div
-                    key={property.id}
-                    className="bg-background rounded-xl p-4 border border-border"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-20 h-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                        {property.images?.[0] ? (
-                          <img
-                            src={property.images[0]}
-                            alt={property.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Building2 className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-medium text-foreground text-sm line-clamp-1">
-                              {property.title}
-                            </h3>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                              <MapPin className="w-3 h-3" />
-                              {property.location}
-                            </div>
-                            <p className="text-sm font-semibold text-primary mt-1">
-                              ₦{property.price.toLocaleString()}/year
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {property.bedrooms} bed • {property.bathrooms} bath
-                            </p>
-                          </div>
-                          <Badge
-                            variant={property.is_verified ? "default" : "secondary"}
-                          >
-                            {property.is_verified ? "Verified" : "Pending"}
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs"
-                            onClick={() => navigate(`/listing/${property.id}`)}
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            View
-                          </Button>
-                          {!property.is_verified && (
-                            <>
-                              <Button
-                                size="sm"
-                                className="h-8 text-xs"
-                                onClick={() =>
-                                  handleVerifyProperty(property.id, true)
-                                }
-                              >
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Verify
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                className="h-8 text-xs"
-                                onClick={() =>
-                                  handleVerifyProperty(property.id, false)
-                                }
-                              >
-                                <XCircle className="w-3 h-3 mr-1" />
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Bookings Tab */}
-        {activeTab === "bookings" && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search bookings..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {["all", "pending", "paid", "verified", "completed"].map(
-                  (status) => (
-                    <Button
-                      key={status}
-                      variant={filterStatus === status ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFilterStatus(status)}
-                      className="capitalize whitespace-nowrap"
-                    >
-                      {status}
-                    </Button>
-                  )
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {filteredBookings.length === 0 ? (
-                <div className="bg-background rounded-xl p-8 text-center border border-border">
-                  <CalendarCheck className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No bookings found</p>
-                </div>
-              ) : (
-                filteredBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    className="bg-background rounded-xl p-4 border border-border"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium text-foreground">
-                            {booking.student_name}
-                          </h3>
-                          <p className="text-xs text-muted-foreground">
-                            {booking.property?.title || "Property"}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Badge
-                            variant={
-                              booking.payment_status === "paid" ||
-                              booking.payment_status === "verified"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {booking.payment_status}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          {booking.student_email}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="w-3 h-3" />
-                          {booking.student_phone}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          Move-in: {format(new Date(booking.move_in_date), "MMM d, yyyy")}
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <CreditCard className="w-3 h-3" />
-                          ₦{booking.total_amount.toLocaleString()}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2 border-t border-border">
-                        <span className="text-xs text-muted-foreground">
-                          Inspection:
-                        </span>
-                        <Badge
-                          variant={
-                            booking.inspection_status === "passed"
-                              ? "default"
-                              : booking.inspection_status === "failed"
-                              ? "destructive"
-                              : "secondary"
-                          }
-                        >
-                          {booking.inspection_status || "pending"}
-                        </Badge>
-                      </div>
-
-                      {booking.payment_reference && (
-                        <p className="text-xs text-muted-foreground">
-                          Ref: {booking.payment_reference}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Inspections Tab */}
-        {activeTab === "inspections" && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search inspections..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-2">
-                {["all", "pending", "passed", "failed"].map((status) => (
-                  <Button
-                    key={status}
-                    variant={filterStatus === status ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterStatus(status)}
-                    className="capitalize"
-                  >
-                    {status}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {bookings.filter((b) =>
-                filterStatus === "all"
-                  ? true
-                  : b.inspection_status === filterStatus ||
-                    (filterStatus === "pending" && !b.inspection_status)
-              ).length === 0 ? (
-                <div className="bg-background rounded-xl p-8 text-center border border-border">
-                  <ClipboardCheck className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No inspections found</p>
-                </div>
-              ) : (
-                bookings
-                  .filter((b) =>
-                    filterStatus === "all"
-                      ? true
-                      : b.inspection_status === filterStatus ||
-                        (filterStatus === "pending" &&
-                          (!b.inspection_status || b.inspection_status === "pending"))
-                  )
-                  .filter(
-                    (b) =>
-                      b.student_name
-                        ?.toLowerCase()
-                        .includes(searchQuery.toLowerCase()) ||
-                      b.property?.title
-                        ?.toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-                  )
-                  .map((booking) => (
-                    <div
-                      key={booking.id}
-                      className="bg-background rounded-xl p-4 border border-border"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-medium text-foreground">
-                              {booking.property?.title || "Property"}
-                            </h3>
-                            <p className="text-xs text-muted-foreground">
-                              Booked by: {booking.student_name}
-                            </p>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                              <MapPin className="w-3 h-3" />
-                              {booking.property?.location}
-                            </div>
-                          </div>
-                          <Badge
-                            variant={
-                              booking.inspection_status === "approved"
-                                ? "default"
-                                : booking.inspection_status === "rejected"
-                                ? "destructive"
-                                : "secondary"
-                            }
-                          >
-                            <Clock className="w-3 h-3 mr-1" />
-                            {booking.inspection_status || "pending"}
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Phone className="w-3 h-3" />
-                            {booking.student_phone}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <CreditCard className="w-3 h-3" />
-                            ₦{booking.total_amount.toLocaleString()}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
-                            Move-in:{" "}
-                            {format(new Date(booking.move_in_date), "MMM d, yyyy")}
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <CreditCard className="w-3 h-3" />
-                            Payment: {booking.payment_status}
-                          </div>
-                        </div>
-
-                        {booking.inspection_notes && (
-                          <div className="bg-muted/50 rounded-lg p-3 text-xs">
-                            <p className="font-medium mb-1">Inspection Notes:</p>
-                            <p className="text-muted-foreground">
-                              {booking.inspection_notes}
-                            </p>
-                          </div>
-                        )}
-
-                        {(!booking.inspection_status ||
-                          booking.inspection_status === "pending") && (
-                          <div className="flex items-center gap-2 pt-2 border-t border-border">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() =>
-                                navigate(`/listing/${booking.listing_id}`)
-                              }
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View Property
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1"
-                              onClick={() =>
-                                handleInspectionUpdate(
-                                  booking.id,
-                                  "passed",
-                                  "Property verified and approved."
-                                )
-                              }
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Pass
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="flex-1"
-                              onClick={() =>
-                                handleInspectionUpdate(
-                                  booking.id,
-                                  "failed",
-                                  "Property did not meet standards."
-                                )
-                              }
-                            >
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Fail
-                            </Button>
-                          </div>
-                        )}
-
-                        {booking.inspection_status === "passed" && (
-                          <div className="flex items-center gap-2 text-primary text-sm bg-primary/10 rounded-lg p-3">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>
-                              Inspection passed - Payment can be released to
-                              landlord
-                            </span>
-                          </div>
-                        )}
-
-                        {booking.inspection_status === "failed" && (
-                          <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 rounded-lg p-3">
-                            <XCircle className="w-4 h-4" />
-                            <span>
-                              Inspection failed - Refund will be processed to
-                              student
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+    </SidebarProvider>
   );
 };
 
