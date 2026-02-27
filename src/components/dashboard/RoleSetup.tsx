@@ -111,10 +111,10 @@ const RoleSetup = ({ user, onRoleSet }: RoleSetupProps) => {
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
                   {selectedRole === "agent" && (
                     <div className="space-y-2">
-                      <Label htmlFor="company">Company/Agency Name</Label>
+                      <Label htmlFor="company">Lodge Name</Label>
                       <Input
                         id="company"
-                        placeholder="e.g. Prime Properties Ltd"
+                        placeholder="e.g. Sunshine Lodge"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                       />

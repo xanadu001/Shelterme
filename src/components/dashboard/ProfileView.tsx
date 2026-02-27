@@ -255,7 +255,7 @@ const ProfileView = ({ user, onLogout }: ProfileViewProps) => {
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-muted-foreground" />
-              Company Name
+              Lodge Name
             </Label>
             <Input
               value={roleData.company_name}
