@@ -50,7 +50,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+
 import AdminNotifications from "@/components/dashboard/AdminNotifications";
 import AdminSettings from "@/components/dashboard/AdminSettings";
 
@@ -64,7 +64,6 @@ interface AdminStats {
   pendingVerifications: number;
   pendingInspections: number;
   monthlyRevenue: number;
-  occupancyRate: number;
 }
 
 interface UserWithRole {
@@ -237,7 +236,6 @@ const AdminDashboard = () => {
     pendingVerifications: 0,
     pendingInspections: 0,
     monthlyRevenue: 0,
-    occupancyRate: 0,
   });
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [properties, setProperties] = useState<PropertyData[]>([]);
@@ -330,9 +328,6 @@ const AdminDashboard = () => {
       .eq("payment_status", "verified");
     
     const monthlyRevenue = verifiedBookings?.reduce((sum, b) => sum + Number(b.service_fee), 0) || 0;
-    const totalProps = propertiesCount || 0;
-    const bookedProps = bookingsCount || 0;
-    const occupancyRate = totalProps > 0 ? Math.round((bookedProps / totalProps) * 100) : 0;
 
     setStats({
       totalUsers: usersCount || 0,
@@ -343,7 +338,6 @@ const AdminDashboard = () => {
       pendingVerifications: pendingCount || 0,
       pendingInspections: pendingInspectionsCount || 0,
       monthlyRevenue,
-      occupancyRate: Math.min(occupancyRate, 100),
     });
   };
 
@@ -732,7 +726,7 @@ const AdminDashboard = () => {
             {activeTab === "overview" && (
               <>
                 {/* Stats row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                   <StatCard
                     title="Total Properties"
                     value={stats.totalProperties}
@@ -748,13 +742,6 @@ const AdminDashboard = () => {
                     iconBg="bg-blue-500"
                   />
                   <StatCard
-                    title="Occupancy Rate"
-                    value={`${stats.occupancyRate}%`}
-                    icon={TrendingUp}
-                    growth="+2%"
-                    iconBg="bg-primary"
-                  />
-                  <StatCard
                     title="Monthly Revenue"
                     value={formatCurrency(stats.monthlyRevenue)}
                     icon={DollarSign}
@@ -764,9 +751,9 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Recent Bookings + Chart */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {/* Recent Bookings Table */}
-                  <div className="xl:col-span-2 bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="bg-background border border-border rounded-xl overflow-hidden">
                     <div className="px-6 py-4 flex items-center justify-between border-b border-border">
                       <h3 className="font-semibold text-foreground">Recent Bookings</h3>
                       <button
@@ -830,30 +817,6 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Occupancy Trends Chart */}
-                  <div className="bg-background border border-border rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-semibold text-foreground">Occupancy Trends</h3>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">This Year</span>
-                    </div>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={occupancyChartData}>
-                          <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                          <YAxis hide />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--background))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "8px",
-                              fontSize: "12px",
-                            }}
-                          />
-                          <Bar dataKey="value" fill="hsl(142, 96%, 37%)" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
                 </div>
               </>
             )}
