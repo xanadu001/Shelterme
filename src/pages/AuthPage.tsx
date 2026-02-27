@@ -361,14 +361,14 @@ const AuthPage = () => {
                 {selectedRole === "landlord" && (
                   <div className="space-y-2">
                     <Label htmlFor="companyName" className="text-sm font-medium">
-                      Company/Agency Name <span className="text-muted-foreground">(Optional)</span>
+                      Lodge Name <span className="text-muted-foreground">(Optional)</span>
                     </Label>
                     <Input
                       id="companyName"
                       name="companyName"
                       value={formData.companyName}
                       onChange={handleInputChange}
-                      placeholder="Your company or agency name"
+                      placeholder="e.g. Sunshine Lodge"
                       className="h-12 rounded-xl"
                     />
                   </div>
