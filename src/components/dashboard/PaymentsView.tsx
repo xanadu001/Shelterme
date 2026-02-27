@@ -57,15 +57,15 @@ const PaymentsView = ({ user }: PaymentsViewProps) => {
         if (agentBookings.length > 0) {
           setBookings(agentBookings);
           
-          // Total revenue = verified payments (inspection passed) - rent amount only
+          // Total revenue = service fees from verified/approved bookings only
           const totalRevenue = agentBookings
             .filter(b => b.payment_status === "verified")
-            .reduce((sum, b) => sum + Number(b.rent_amount), 0);
+            .reduce((sum, b) => sum + Number(b.service_fee), 0);
           
-          // Pending payments = awaiting inspection (submitted/pending but not failed) - rent amount only
+          // Pending payments = service fees from bookings awaiting inspection
           const pendingPayments = agentBookings
             .filter(b => (b.payment_status === "pending" || b.payment_status === "submitted") && b.inspection_status !== "rejected")
-            .reduce((sum, b) => sum + Number(b.rent_amount), 0);
+            .reduce((sum, b) => sum + Number(b.service_fee), 0);
           
           const completedPayments = agentBookings.filter(b => b.payment_status === "verified").length;
 
