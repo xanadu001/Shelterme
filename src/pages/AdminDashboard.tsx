@@ -51,6 +51,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import AdminNotifications from "@/components/dashboard/AdminNotifications";
 import AdminSettings from "@/components/dashboard/AdminSettings";
 
@@ -751,9 +752,9 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Recent Bookings + Chart */}
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                   {/* Recent Bookings Table */}
-                  <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="xl:col-span-2 bg-background border border-border rounded-xl overflow-hidden">
                     <div className="px-6 py-4 flex items-center justify-between border-b border-border">
                       <h3 className="font-semibold text-foreground">Recent Bookings</h3>
                       <button
@@ -817,6 +818,30 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
+                  {/* Occupancy Trends Chart */}
+                  <div className="bg-background border border-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold text-foreground">Occupancy Trends</h3>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">This Year</span>
+                    </div>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={occupancyChartData}>
+                          <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis hide />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                            }}
+                          />
+                          <Bar dataKey="value" fill="hsl(142, 96%, 37%)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
