@@ -51,6 +51,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import AdminNotifications from "@/components/dashboard/AdminNotifications";
+import AdminSettings from "@/components/dashboard/AdminSettings";
 
 // --- Types (unchanged) ---
 interface AdminStats {
@@ -119,6 +121,7 @@ const navItems = [
   { id: "bookings", label: "Bookings", icon: CalendarCheck },
   { id: "users", label: "Students", icon: GraduationCap },
   { id: "inspections", label: "Inspections", icon: ClipboardCheck },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 const AdminSidebar = ({
@@ -169,13 +172,7 @@ const AdminSidebar = ({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Settings */}
-        <div className="px-3 pb-3">
-          <button className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted w-full transition-colors">
-            <Settings className="w-5 h-5" />
-            <span>Settings</span>
-          </button>
-        </div>
+        {/* Settings button removed - now in nav */}
 
         {/* User */}
         <div className="px-5 py-4 border-t border-border flex items-center gap-3">
@@ -326,13 +323,13 @@ const AdminDashboard = () => {
       supabase.from("bookings").select("*", { count: "exact", head: true }).eq("inspection_status", "pending"),
     ]);
 
-    // Get monthly revenue from verified bookings
+    // Get monthly revenue from service fees on verified bookings
     const { data: verifiedBookings } = await supabase
       .from("bookings")
-      .select("rent_amount")
+      .select("service_fee")
       .eq("payment_status", "verified");
     
-    const monthlyRevenue = verifiedBookings?.reduce((sum, b) => sum + Number(b.rent_amount), 0) || 0;
+    const monthlyRevenue = verifiedBookings?.reduce((sum, b) => sum + Number(b.service_fee), 0) || 0;
     const totalProps = propertiesCount || 0;
     const bookedProps = bookingsCount || 0;
     const occupancyRate = totalProps > 0 ? Math.round((bookedProps / totalProps) * 100) : 0;
@@ -709,17 +706,7 @@ const AdminDashboard = () => {
                   className="pl-10 w-64 bg-muted/50 border-border"
                 />
               </div>
-              <button className="relative w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
-                <Bell className="w-4 h-4 text-muted-foreground" />
-                {stats.pendingInspections > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-medium">
-                    {stats.pendingInspections}
-                  </span>
-                )}
-              </button>
-              <button className="w-9 h-9 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
-                <HelpCircle className="w-4 h-4 text-muted-foreground" />
-              </button>
+              <AdminNotifications />
               <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive">
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -1181,6 +1168,11 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* ===== SETTINGS TAB ===== */}
+            {activeTab === "settings" && (
+              <AdminSettings user={user} />
             )}
           </main>
         </div>
