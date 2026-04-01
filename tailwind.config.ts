@@ -46,6 +46,10 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        "lodge-accent": {
+          DEFAULT: "hsl(var(--lodge-accent))",
+          foreground: "hsl(var(--lodge-accent-foreground))",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
