@@ -63,7 +63,7 @@ const LandingPage = () => {
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <img src={logo} alt="LodgeMe" className="w-16 h-16 mb-4" />
-            <h1 className="text-2xl font-bold text-foreground">lodgeMe</h1>
+            <h1 className="text-2xl font-bold text-foreground">LodgeMe</h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
               Find your perfect home near campus in Nigeria.
             </p>
