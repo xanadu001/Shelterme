@@ -302,7 +302,7 @@ const AuthPage = () => {
               )}
             </div>
             <h1 className="text-2xl font-bold text-foreground">
-              {isAdminLogin ? "Admin Portal" : "ShelterMe"}
+              {isAdminLogin ? "Admin Portal" : "LodgeMe"}
             </h1>
             <p className="text-sm text-muted-foreground text-center mt-1">
               {isAdminLogin 

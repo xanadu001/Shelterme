@@ -160,7 +160,7 @@ const ListingDetail = () => {
   const handleMessage = () => {
     if (ownerPhone) {
       const formattedPhone = formatPhoneForWhatsApp(ownerPhone);
-      const message = encodeURIComponent(`Hello, I'm interested in your property "${listing?.title}" listed on ShelterMe. Is it still available?`);
+      const message = encodeURIComponent(`Hello, I'm interested in your property "${listing?.title}" listed on LodgeMe. Is it still available?`);
       window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
     }
   };
@@ -465,7 +465,7 @@ const ListingDetail = () => {
             <div>
               <h3 className="font-semibold text-amber-800 mb-1">Payment Protection</h3>
               <p className="text-sm text-amber-700 leading-relaxed">
-                <strong>Do NOT pay directly to the agent.</strong> All payments should be made through ShelterMe. 
+                <strong>Do NOT pay directly to the agent.</strong> All payments should be made through LodgeMe. 
                 We verify the property before releasing payment to the agent to protect you from scams.
               </p>
             </div>
@@ -481,11 +481,11 @@ const ListingDetail = () => {
           <ol className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
-              <span>Pay securely through ShelterMe using the "Book Now" button</span>
+              <span>Pay securely through LodgeMe using the "Book Now" button</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
-              <span>Your payment is held safely by ShelterMe</span>
+              <span>Your payment is held safely by LodgeMe</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
@@ -502,7 +502,7 @@ const ListingDetail = () => {
         <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3">
           <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
           <p className="text-sm text-red-700">
-            <strong>Warning:</strong> Never send money directly to agents via bank transfer, cash, or any other means outside the ShelterMe platform.
+            <strong>Warning:</strong> Never send money directly to agents via bank transfer, cash, or any other means outside the LodgeMe platform.
           </p>
         </div>
 

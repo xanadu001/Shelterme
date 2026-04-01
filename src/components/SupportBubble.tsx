@@ -7,7 +7,7 @@ const SupportBubble = () => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleWhatsApp = () => {
-    window.open("https://wa.me/2348012345678?text=Hello%20ShelterMe%20Support", "_blank");
+    window.open("https://wa.me/2348012345678?text=Hello%20LodgeMe%20Support", "_blank");
     setIsExpanded(false);
   };
 

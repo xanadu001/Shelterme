@@ -203,7 +203,7 @@ const BookingDetailPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = `mailto:support@shelterme.ng?subject=Booking ${booking.id.slice(0, 8)}`}
+              onClick={() => window.location.href = `mailto:support@lodgeme.ng?subject=Booking ${booking.id.slice(0, 8)}`}
               className="flex-1"
             >
               <Mail className="w-4 h-4 mr-2" />
