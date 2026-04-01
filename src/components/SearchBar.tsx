@@ -27,8 +27,8 @@ const SearchBar = ({
     <div className="px-4 py-3">
       {/* Platform Logo */}
       <div className="flex items-center justify-center gap-2 mb-3">
-        <img src={logo} alt="ShelterMe" className="h-8 w-auto" />
-        <h1 className="text-xl font-bold text-primary">ShelterMe</h1>
+        <img src={logo} alt="LodgeMe" className="h-8 w-auto" />
+        <h1 className="text-xl font-bold text-primary">LodgeMe</h1>
       </div>
       
       {/* Search Bar */}

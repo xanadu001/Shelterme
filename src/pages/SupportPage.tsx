@@ -38,7 +38,7 @@ interface FAQItem {
 const faqs: FAQItem[] = [
   {
     question: "How does the payment protection work?",
-    answer: "When you book a property through ShelterMe, your payment is held securely by us. Our team then inspects and verifies the property on your behalf. Only after the property passes our inspection is the payment released to the agent. This protects you from scams and ensures you get what you paid for.",
+    answer: "When you book a property through LodgeMe, your payment is held securely by us. Our team then inspects and verifies the property on your behalf. Only after the property passes our inspection is the payment released to the agent. This protects you from scams and ensures you get what you paid for.",
     icon: Shield,
   },
   {
@@ -80,7 +80,7 @@ const SupportPage = () => {
   });
 
   const handleWhatsApp = () => {
-    const message = encodeURIComponent("Hello ShelterMe Support, I need assistance with...");
+    const message = encodeURIComponent("Hello LodgeMe Support, I need assistance with...");
     window.open(`https://wa.me/2348012345678?text=${message}`, "_blank");
   };
 
@@ -89,7 +89,7 @@ const SupportPage = () => {
   };
 
   const handleEmail = () => {
-    window.location.href = "mailto:support@shelterme.ng";
+    window.location.href = "mailto:support@lodgeme.ng";
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -284,7 +284,7 @@ const SupportPage = () => {
             <div>
               <h3 className="font-semibold text-red-800 mb-1">Report Fraud or Scam</h3>
               <p className="text-sm text-red-700 mb-3">
-                If you've been contacted by someone claiming to be from ShelterMe asking for direct payment, 
+                If you've been contacted by someone claiming to be from LodgeMe asking for direct payment, 
                 or if you suspect fraudulent activity, report it immediately.
               </p>
               <Button 

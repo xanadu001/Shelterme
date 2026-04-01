@@ -144,7 +144,7 @@ const AdminSidebar = ({
             <Shield className="w-5 h-5 text-primary-foreground" />
           </div>
           <div className="overflow-hidden">
-            <h1 className="text-base font-bold text-foreground leading-tight">ShelterMe</h1>
+            <h1 className="text-base font-bold text-foreground leading-tight">LodgeMe</h1>
             <p className="text-xs text-muted-foreground">Admin Panel</p>
           </div>
         </div>
