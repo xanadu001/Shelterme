@@ -176,8 +176,8 @@ const ListingDetail = () => {
             LodgeMe
           </h1>
           <nav className="flex items-center gap-6 text-sm font-medium text-foreground">
-            <button onClick={() => navigate("/")} className="hover:text-foreground/70 transition-colors">Discover</button>
-            <button onClick={() => navigate("/wishlist")} className="hover:text-foreground/70 transition-colors">Saved</button>
+            <button onClick={() => navigate("/explore")} className="hover:text-foreground/70 transition-colors">Explore</button>
+            <button onClick={() => navigate("/wishlists")} className="hover:text-foreground/70 transition-colors">Saved</button>
             <button className="hover:text-foreground/70 transition-colors">LodgeMe Business</button>
           </nav>
         </div>
@@ -186,7 +186,7 @@ const ListingDetail = () => {
             List your lodge
           </button>
           <Globe className="w-5 h-5 text-foreground" />
-          <div className="flex items-center gap-2 border border-border rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer">
+          <div onClick={() => navigate("/profile")} className="flex items-center gap-2 border border-border rounded-full px-3 py-1.5 hover:shadow-md transition-shadow cursor-pointer">
             <Menu className="w-4 h-4 text-foreground" />
             <div className="w-7 h-7 rounded-full bg-foreground flex items-center justify-center">
               <User className="w-4 h-4 text-background" />
