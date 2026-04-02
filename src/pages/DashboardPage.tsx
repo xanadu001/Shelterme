@@ -82,7 +82,7 @@ const DashboardPage = () => {
         title: "Logged out",
         description: "You have been successfully logged out."
       });
-      navigate("/auth");
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Logout error:", error);
       toast({
