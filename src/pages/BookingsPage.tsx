@@ -38,7 +38,7 @@ const BookingsPage = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         if (!session?.user) {
-          navigate("/auth");
+          navigate("/", { replace: true });
         }
       }
     );
@@ -46,7 +46,7 @@ const BookingsPage = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (!session?.user) {
-        navigate("/auth");
+        navigate("/", { replace: true });
       } else {
         fetchBookings(session.user);
       }

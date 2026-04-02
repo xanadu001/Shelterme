@@ -82,7 +82,7 @@ const DashboardPage = () => {
         title: "Logged out",
         description: "You have been successfully logged out."
       });
-      navigate("/auth");
+      navigate("/", { replace: true });
     } catch (error) {
       console.error("Logout error:", error);
       toast({
@@ -98,7 +98,7 @@ const DashboardPage = () => {
       (event, session) => {
         setUser(session?.user ?? null);
         if (!session?.user) {
-          navigate("/auth");
+          navigate("/", { replace: true });
         }
       }
     );
@@ -106,7 +106,7 @@ const DashboardPage = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (!session?.user) {
-        navigate("/auth");
+        navigate("/", { replace: true });
       } else {
         checkUserRole(session.user.id);
         fetchDashboardData(session.user.id);

@@ -96,7 +96,7 @@ const BookingPage = () => {
         setUser(session?.user ?? null);
         
         if (!session?.user) {
-          navigate("/auth");
+          navigate("/", { replace: true });
         } else {
           setTimeout(() => {
             fetchProfile(session.user.id);
@@ -110,7 +110,7 @@ const BookingPage = () => {
       setUser(session?.user ?? null);
       
       if (!session?.user) {
-        navigate("/auth");
+        navigate("/", { replace: true });
       } else {
         fetchProfile(session.user.id);
       }
