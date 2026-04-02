@@ -112,7 +112,7 @@ const AuthPage = () => {
       }
     } catch (error) {
       console.error("Error checking role:", error);
-      navigate("/explore");
+      navigate("/explore", { replace: true });
     }
   };
 
