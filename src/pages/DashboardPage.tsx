@@ -106,7 +106,7 @@ const DashboardPage = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (!session?.user) {
-        navigate("/auth");
+        navigate("/", { replace: true });
       } else {
         checkUserRole(session.user.id);
         fetchDashboardData(session.user.id);

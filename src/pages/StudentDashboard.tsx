@@ -47,7 +47,7 @@ const StudentDashboard = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (!session?.user) {
-        navigate("/auth");
+        navigate("/", { replace: true });
       } else {
         fetchData(session.user);
       }
