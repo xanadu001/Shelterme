@@ -31,7 +31,7 @@ const WishlistPage = () => {
       <div className="sticky top-0 bg-background z-40 border-b border-border">
         <div className="flex items-center gap-4 p-4">
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(-1)}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
