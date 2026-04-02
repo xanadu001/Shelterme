@@ -95,20 +95,20 @@ const AuthPage = () => {
         const role = roleData.role as string;
         switch (role) {
           case "student":
-            navigate("/explore");
+            navigate("/explore", { replace: true });
             break;
           case "landlord":
           case "agent":
-            navigate("/dashboard");
+            navigate("/dashboard", { replace: true });
             break;
           case "admin":
-            navigate("/admin-dashboard");
+            navigate("/admin-dashboard", { replace: true });
             break;
           default:
-            navigate("/explore");
+            navigate("/explore", { replace: true });
         }
       } else {
-        navigate("/explore");
+        navigate("/explore", { replace: true });
       }
     } catch (error) {
       console.error("Error checking role:", error);
