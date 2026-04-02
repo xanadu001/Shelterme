@@ -252,9 +252,9 @@ const AuthPage = () => {
           // Redirect to appropriate page after role is saved
           // Students go to homepage, landlords/agents go to dashboard
           if (selectedRole === "landlord") {
-            navigate("/dashboard");
+            navigate("/dashboard", { replace: true });
           } else {
-            navigate("/explore");
+            navigate("/explore", { replace: true });
           }
         }
       }
