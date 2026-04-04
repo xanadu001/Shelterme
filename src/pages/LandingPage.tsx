@@ -12,7 +12,7 @@ const LandingPage = () => {
 
   useEffect(() => {
     if (isMobile === false) {
-      navigate("/explore", { replace: true });
+      navigate("/auth", { replace: true });
     }
   }, [isMobile, navigate]);
   return (
