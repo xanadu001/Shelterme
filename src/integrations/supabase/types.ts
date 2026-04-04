@@ -203,6 +203,69 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_spaces: {
+        Row: {
+          amenities: string[] | null
+          bathrooms: number
+          bedrooms: number
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string
+          id: string
+          images: string[] | null
+          is_available: boolean | null
+          location: string
+          owner_id: string
+          period: string
+          price: number
+          title: string
+          university: string
+          updated_at: string
+          videos: string[] | null
+        }
+        Insert: {
+          amenities?: string[] | null
+          bathrooms?: number
+          bedrooms?: number
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          images?: string[] | null
+          is_available?: boolean | null
+          location: string
+          owner_id: string
+          period?: string
+          price: number
+          title: string
+          university: string
+          updated_at?: string
+          videos?: string[] | null
+        }
+        Update: {
+          amenities?: string[] | null
+          bathrooms?: number
+          bedrooms?: number
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[] | null
+          is_available?: boolean | null
+          location?: string
+          owner_id?: string
+          period?: string
+          price?: number
+          title?: string
+          university?: string
+          updated_at?: string
+          videos?: string[] | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           company_name: string | null
