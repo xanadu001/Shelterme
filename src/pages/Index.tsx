@@ -22,6 +22,7 @@ const DEFAULT_FILTERS: FilterOptions = {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = useState("");
