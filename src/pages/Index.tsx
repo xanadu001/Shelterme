@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Users } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import ListingsHome from "@/components/ListingsHome";
 import BottomNav from "@/components/BottomNav";
@@ -20,6 +22,7 @@ const DEFAULT_FILTERS: FilterOptions = {
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>(DEFAULT_FILTERS);
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,12 +90,49 @@ const Index = () => {
     return map;
   }, [activeBookings]);
 
-  // Combine database properties with static listings (db properties first)
+  // Fetch shared spaces
+  const { data: sharedSpaces = [] } = useQuery({
+    queryKey: ["shared-spaces"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shared_spaces")
+        .select("*")
+        .eq("is_available", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching shared spaces:", error);
+        return [];
+      }
+
+      return data.map((space): Listing => ({
+        id: space.id,
+        image: space.images?.[0] || "/placeholder.svg",
+        images: space.images || [],
+        title: `🤝 ${space.title}`,
+        description: space.description,
+        location: space.location,
+        price: Number(space.price),
+        period: space.period,
+        isVerified: false,
+        amenities: space.amenities || [],
+        bedrooms: space.bedrooms,
+        bathrooms: space.bathrooms,
+        size: "",
+      }));
+    },
+  });
+
+  // Combine database properties, shared spaces, and static listings
   const allCombinedListings = useMemo(() => {
     const combinedListings: ExtendedListing[] = [
       ...dbProperties.map((listing) => ({
         ...listing,
         bookingStatus: bookingStatusMap[String(listing.id)] || "available",
+      })),
+      ...sharedSpaces.map((listing) => ({
+        ...listing,
+        bookingStatus: "available" as BookingStatus,
       })),
       ...allListings.map((listing) => ({
         ...listing,
@@ -100,7 +140,7 @@ const Index = () => {
       })),
     ];
     return combinedListings;
-  }, [dbProperties, bookingStatusMap]);
+  }, [dbProperties, sharedSpaces, bookingStatusMap]);
 
   const filteredListings = useMemo(() => {
     return allCombinedListings.filter((listing) => {
@@ -171,6 +211,13 @@ const Index = () => {
           <h1 className="text-xl font-semibold text-foreground">
             {activeFilterCount > 0 ? `${filteredListings.length} listings` : "All listings"}
           </h1>
+          <button
+            onClick={() => navigate("/share-space")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lodge-accent text-lodge-accent-foreground text-xs font-semibold hover:bg-lodge-accent/90 transition-colors"
+          >
+            <Users className="w-3.5 h-3.5" />
+            Share Space
+          </button>
         </div>
         <ListingsHome listings={filteredListings} />
       </main>
