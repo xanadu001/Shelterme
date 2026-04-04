@@ -211,6 +211,13 @@ const Index = () => {
           <h1 className="text-xl font-semibold text-foreground">
             {activeFilterCount > 0 ? `${filteredListings.length} listings` : "All listings"}
           </h1>
+          <button
+            onClick={() => navigate("/share-space")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-lodge-accent text-lodge-accent-foreground text-xs font-semibold hover:bg-lodge-accent/90 transition-colors"
+          >
+            <Users className="w-3.5 h-3.5" />
+            Share Space
+          </button>
         </div>
         <ListingsHome listings={filteredListings} />
       </main>
