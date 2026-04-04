@@ -90,12 +90,49 @@ const Index = () => {
     return map;
   }, [activeBookings]);
 
-  // Combine database properties with static listings (db properties first)
+  // Fetch shared spaces
+  const { data: sharedSpaces = [] } = useQuery({
+    queryKey: ["shared-spaces"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shared_spaces")
+        .select("*")
+        .eq("is_available", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching shared spaces:", error);
+        return [];
+      }
+
+      return data.map((space): Listing => ({
+        id: space.id,
+        image: space.images?.[0] || "/placeholder.svg",
+        images: space.images || [],
+        title: `🤝 ${space.title}`,
+        description: space.description,
+        location: space.location,
+        price: Number(space.price),
+        period: space.period,
+        isVerified: false,
+        amenities: space.amenities || [],
+        bedrooms: space.bedrooms,
+        bathrooms: space.bathrooms,
+        size: "",
+      }));
+    },
+  });
+
+  // Combine database properties, shared spaces, and static listings
   const allCombinedListings = useMemo(() => {
     const combinedListings: ExtendedListing[] = [
       ...dbProperties.map((listing) => ({
         ...listing,
         bookingStatus: bookingStatusMap[String(listing.id)] || "available",
+      })),
+      ...sharedSpaces.map((listing) => ({
+        ...listing,
+        bookingStatus: "available" as BookingStatus,
       })),
       ...allListings.map((listing) => ({
         ...listing,
@@ -103,7 +140,7 @@ const Index = () => {
       })),
     ];
     return combinedListings;
-  }, [dbProperties, bookingStatusMap]);
+  }, [dbProperties, sharedSpaces, bookingStatusMap]);
 
   const filteredListings = useMemo(() => {
     return allCombinedListings.filter((listing) => {
