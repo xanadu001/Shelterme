@@ -1,12 +1,20 @@
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect } from "react";
 import logo from "@/assets/logo.png";
 import heroImage from "@/assets/landing-hero.png";
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
+  useEffect(() => {
+    if (isMobile === false) {
+      navigate("/explore", { replace: true });
+    }
+  }, [isMobile, navigate]);
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
