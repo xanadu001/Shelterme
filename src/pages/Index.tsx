@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { Users } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import ListingsHome from "@/components/ListingsHome";
 import BottomNav from "@/components/BottomNav";
