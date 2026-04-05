@@ -27,6 +27,7 @@ const ListingCardAirbnb = ({
   isFavorite = false,
   isAvailable = false,
   bookingStatus = "available",
+  isSharedSpace = false,
 }: ListingCardAirbnbProps) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(isFavorite);
