@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share, MapPin, Grid3X3, Play, Zap, Wifi, Shield, Droplets, WashingMachine, Globe, Menu, User, Phone, Mail, MessageCircle, Users } from "lucide-react";
+import { ArrowLeft, Heart, Share, MapPin, Grid3X3, Play, Zap, Wifi, Shield, Droplets, WashingMachine, Globe, Menu, User, Users, ShieldCheck, AlertTriangle, Clock, CheckCircle2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,8 @@ const amenityIcons: Record<string, React.ReactNode> = {
   "Water Supply": <Droplets className="w-5 h-5" />,
   "Laundry Area": <WashingMachine className="w-5 h-5" />,
 };
+
+type BookingStatusType = "none" | "pending" | "approved";
 
 interface SharedSpaceData {
   id: string;
@@ -42,6 +44,7 @@ const SharedSpaceDetail = () => {
   const [showAllAmenities, setShowAllAmenities] = useState(false);
   const [loading, setLoading] = useState(true);
   const [space, setSpace] = useState<SharedSpaceData | null>(null);
+  const [bookingStatus, setBookingStatus] = useState<BookingStatusType>("none");
 
   useEffect(() => {
     const fetchSpace = async () => {
@@ -72,7 +75,33 @@ const SharedSpaceDetail = () => {
       }
       setLoading(false);
     };
+
+    const fetchBookingStatus = async () => {
+      if (!id) return;
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select("inspection_status, payment_status")
+        .eq("listing_id", String(id))
+        .order("created_at", { ascending: false });
+
+      if (bookings && bookings.length > 0) {
+        const approvedBooking = bookings.find(
+          (b) => b.inspection_status === "approved" && b.payment_status === "verified"
+        );
+        if (approvedBooking) { setBookingStatus("approved"); return; }
+
+        const pendingBooking = bookings.find(
+          (b) =>
+            (b.inspection_status === "pending" || b.inspection_status === "scheduled" || b.inspection_status === "in_progress") &&
+            (b.payment_status === "submitted" || b.payment_status === "pending")
+        );
+        if (pendingBooking) { setBookingStatus("pending"); return; }
+      }
+      setBookingStatus("none");
+    };
+
     fetchSpace();
+    fetchBookingStatus();
   }, [id]);
 
   const formatCurrency = (amount: number) =>
@@ -98,26 +127,10 @@ const SharedSpaceDetail = () => {
   }
 
   const galleryImages = space.images.slice(0, 5);
+  const serviceFee = Math.round(space.price * 0.1);
+  const lodgeMeFee = Math.round(space.price * 0.025);
+  const totalPrice = space.price + serviceFee + lodgeMeFee;
   const displayedAmenities = showAllAmenities ? space.amenities : space.amenities.slice(0, 6);
-
-  const handleWhatsApp = () => {
-    if (space.contact_phone) {
-      const phone = space.contact_phone.replace(/\D/g, "");
-      window.open(`https://wa.me/${phone}?text=Hi! I saw your shared space "${space.title}" on LodgeMe and I'm interested.`, "_blank");
-    }
-  };
-
-  const handleCall = () => {
-    if (space.contact_phone) {
-      window.open(`tel:${space.contact_phone}`);
-    }
-  };
-
-  const handleEmail = () => {
-    if (space.contact_email) {
-      window.open(`mailto:${space.contact_email}?subject=Interest in "${space.title}" on LodgeMe`);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -267,6 +280,30 @@ const SharedSpaceDetail = () => {
               </div>
             </div>
 
+            {/* Booking Status Banners */}
+            {bookingStatus === "pending" && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6">
+                <div className="flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-amber-800 mb-1">Booking in Progress</h3>
+                    <p className="text-sm text-amber-700">Someone has already booked this space and it's currently awaiting verification.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {bookingStatus === "approved" && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-6">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-red-800 mb-1">Space Already Booked</h3>
+                    <p className="text-sm text-red-700">This shared space has been verified and is no longer available.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* About */}
             <div className="py-6 border-b border-border">
               <h3 className="text-lg font-semibold text-foreground mb-3">About this space</h3>
@@ -293,55 +330,103 @@ const SharedSpaceDetail = () => {
               </div>
             )}
 
-            {/* Contact Info Section */}
-            <div className="py-6">
-              <h3 className="text-lg font-semibold text-foreground mb-3">Contact the student</h3>
-              <p className="text-sm text-muted-foreground mb-4">Reach out directly to the student sharing this space.</p>
-              <div className="space-y-3">
-                {space.contact_phone && (
-                  <div className="flex items-center gap-3 text-sm text-foreground">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span>{space.contact_phone}</span>
-                  </div>
-                )}
-                {space.contact_email && (
-                  <div className="flex items-center gap-3 text-sm text-foreground">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span>{space.contact_email}</span>
-                  </div>
-                )}
+            {/* Payment Protection */}
+            <div className="py-6 border-b border-border">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="w-6 h-6 text-lodge-accent flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-foreground mb-1">LodgeMe Payment Protection</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    All payments are secured through LodgeMe. We verify the space before releasing payment to protect you from scams.
+                  </p>
+                </div>
               </div>
+            </div>
+
+            {/* Warning */}
+            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3 mt-6">
+              <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <p className="text-sm text-red-700">
+                <strong>Warning:</strong> Never send money directly to anyone outside the LodgeMe platform.
+              </p>
             </div>
           </div>
 
-          {/* Right Contact Card - Desktop */}
+          {/* Right Booking Card - Desktop */}
           <div className="hidden md:block w-[370px] flex-shrink-0">
             <div className="sticky top-8 border border-border rounded-xl shadow-lg p-6">
-              <div className="flex items-baseline gap-1 mb-2">
+              <div className="flex items-baseline gap-1 mb-6">
                 <span className="text-[22px] font-semibold text-foreground">{formatCurrency(space.price)}</span>
                 <span className="text-muted-foreground">/ {space.period}</span>
               </div>
-              <p className="text-sm text-muted-foreground mb-6">Contact the student directly to arrange viewing and sharing.</p>
 
-              <div className="space-y-3">
-                {space.contact_phone && (
-                  <button onClick={handleWhatsApp} className="w-full py-3 rounded-lg bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    WhatsApp
-                  </button>
-                )}
-                {space.contact_phone && (
-                  <button onClick={handleCall} className="w-full py-3 rounded-lg border border-border text-foreground font-semibold text-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Call
-                  </button>
-                )}
-                {space.contact_email && (
-                  <button onClick={handleEmail} className="w-full py-3 rounded-lg border border-border text-foreground font-semibold text-sm hover:bg-muted transition-colors flex items-center justify-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    Email
-                  </button>
-                )}
+              {/* Semester / Dates Selector */}
+              <div className="border border-border rounded-xl overflow-hidden mb-4">
+                <div className="px-3 py-2.5 border-b border-border">
+                  <label className="text-[10px] font-bold text-foreground/70 uppercase tracking-wider">Academic Semester</label>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Rain Semester 2024</span>
+                    <ChevronDown className="w-4 h-4 text-foreground/50" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 divide-x divide-border">
+                  <div className="px-3 py-2.5">
+                    <label className="text-[10px] font-bold text-foreground/70 uppercase tracking-wider">Check-In</label>
+                    <p className="text-sm text-foreground">Select date</p>
+                  </div>
+                  <div className="px-3 py-2.5">
+                    <label className="text-[10px] font-bold text-foreground/70 uppercase tracking-wider">Check-Out</label>
+                    <p className="text-sm text-foreground">Select date</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Book Now Button */}
+              {bookingStatus === "none" ? (
+                <button
+                  onClick={() => navigate(`/booking/${id}`)}
+                  className="w-full py-3 rounded-lg bg-lodge-accent text-lodge-accent-foreground font-semibold text-base hover:opacity-90 transition-opacity"
+                >
+                  Book Now
+                </button>
+              ) : bookingStatus === "pending" ? (
+                <button disabled className="w-full py-3 rounded-lg bg-amber-500 text-white font-semibold text-base flex items-center justify-center gap-2 opacity-80">
+                  <Clock className="w-4 h-4" />
+                  Awaiting Verification
+                </button>
+              ) : (
+                <button disabled className="w-full py-3 rounded-lg bg-muted text-muted-foreground font-semibold text-base flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Already Booked
+                </button>
+              )}
+
+              <p className="text-center text-sm text-muted-foreground mt-3">You won't be charged yet</p>
+
+              {/* Price Breakdown */}
+              <div className="mt-5 pt-5 border-t border-border space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/70 underline">Base Rent</span>
+                  <span className="text-foreground">{formatCurrency(space.price)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/70 underline">Service Charge</span>
+                  <span className="text-foreground">{formatCurrency(serviceFee)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-foreground/70 underline">LodgeMe Fee</span>
+                  <span className="text-foreground">{formatCurrency(lodgeMeFee)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-foreground pt-3 border-t border-border">
+                  <span>Total</span>
+                  <span>{formatCurrency(totalPrice)}</span>
+                </div>
+              </div>
+
+              {/* Payment Protection Badge */}
+              <div className="flex items-center justify-center gap-2 mt-5 pt-4 border-t border-border">
+                <ShieldCheck className="w-4 h-4 text-lodge-accent" />
+                <span className="text-sm font-medium text-lodge-accent">LodgeMe Payment Protection</span>
               </div>
             </div>
           </div>
@@ -357,19 +442,24 @@ const SharedSpaceDetail = () => {
               <span className="text-sm font-normal text-muted-foreground"> / {space.period}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            {space.contact_phone && (
-              <button onClick={handleWhatsApp} className="px-4 py-2.5 rounded-lg bg-green-600 text-white font-semibold text-sm flex items-center gap-1.5">
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-              </button>
-            )}
-            {space.contact_phone && (
-              <button onClick={handleCall} className="px-4 py-2.5 rounded-lg border border-border text-foreground font-semibold text-sm">
-                <Phone className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          {bookingStatus === "none" ? (
+            <button
+              onClick={() => navigate(`/booking/${id}`)}
+              className="px-6 py-2.5 rounded-lg bg-lodge-accent text-lodge-accent-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              Book Now
+            </button>
+          ) : bookingStatus === "pending" ? (
+            <button disabled className="px-6 py-2.5 rounded-lg bg-amber-500 text-white font-semibold text-sm flex items-center gap-2 opacity-80">
+              <Clock className="w-4 h-4" />
+              Awaiting
+            </button>
+          ) : (
+            <button disabled className="px-6 py-2.5 rounded-lg bg-muted text-muted-foreground font-semibold text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Booked
+            </button>
+          )}
         </div>
       </div>
     </div>
