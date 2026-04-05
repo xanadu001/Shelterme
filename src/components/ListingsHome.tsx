@@ -41,6 +41,7 @@ const ListingsHome = ({ listings = [] }: ListingsHomeProps) => {
             period={listing.period}
             isAvailable={listing.isVerified}
             bookingStatus={listing.bookingStatus}
+            isSharedSpace={listing.isSharedSpace}
           />
         ))}
       </div>

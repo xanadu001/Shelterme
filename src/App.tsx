@@ -45,6 +45,7 @@ const App = () => (
           <Route path="/booking-detail/:id" element={<BookingDetailPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/share-space" element={<ShareSpacePage />} />
+          <Route path="/shared-space/:id" element={<SharedSpaceDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
