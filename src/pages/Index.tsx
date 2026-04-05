@@ -12,6 +12,7 @@ import { BookingStatus } from "@/components/ListingCardAirbnb";
 
 interface ExtendedListing extends Listing {
   bookingStatus?: BookingStatus;
+  isSharedSpace?: boolean;
 }
 
 const DEFAULT_FILTERS: FilterOptions = {
@@ -133,6 +134,7 @@ const Index = () => {
       ...sharedSpaces.map((listing) => ({
         ...listing,
         bookingStatus: "available" as BookingStatus,
+        isSharedSpace: true,
       })),
       ...allListings.map((listing) => ({
         ...listing,

@@ -14,6 +14,7 @@ interface ListingCardAirbnbProps {
   isFavorite?: boolean;
   isAvailable?: boolean;
   bookingStatus?: BookingStatus;
+  isSharedSpace?: boolean;
 }
 
 const ListingCardAirbnb = ({
@@ -26,6 +27,7 @@ const ListingCardAirbnb = ({
   isFavorite = false,
   isAvailable = false,
   bookingStatus = "available",
+  isSharedSpace = false,
 }: ListingCardAirbnbProps) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(isFavorite);
@@ -68,7 +70,7 @@ const ListingCardAirbnb = ({
   const badge = getBadgeContent();
 
   return (
-    <div className="cursor-pointer group" onClick={() => navigate(`/listing/${id}`)}>
+    <div className="cursor-pointer group" onClick={() => navigate(isSharedSpace ? `/shared-space/${id}` : `/listing/${id}`)}>
       {/* Image Container */}
       <div className="relative aspect-square rounded-xl overflow-hidden mb-2 bg-muted">
         {/* Skeleton placeholder */}

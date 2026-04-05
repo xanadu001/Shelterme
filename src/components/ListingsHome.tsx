@@ -3,6 +3,7 @@ import { Listing } from "@/data/listings";
 
 interface ExtendedListing extends Listing {
   bookingStatus?: BookingStatus;
+  isSharedSpace?: boolean;
 }
 
 interface ListingsHomeProps {
@@ -40,6 +41,7 @@ const ListingsHome = ({ listings = [] }: ListingsHomeProps) => {
             period={listing.period}
             isAvailable={listing.isVerified}
             bookingStatus={listing.bookingStatus}
+            isSharedSpace={listing.isSharedSpace}
           />
         ))}
       </div>

@@ -17,6 +17,7 @@ import SupportPage from "./pages/SupportPage";
 import BookingDetailPage from "./pages/BookingDetailPage";
 import BookingsPage from "./pages/BookingsPage";
 import ShareSpacePage from "./pages/ShareSpacePage";
+import SharedSpaceDetail from "./pages/SharedSpaceDetail";
 import SupportBubble from "./components/SupportBubble";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/booking-detail/:id" element={<BookingDetailPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/share-space" element={<ShareSpacePage />} />
+          <Route path="/shared-space/:id" element={<SharedSpaceDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
