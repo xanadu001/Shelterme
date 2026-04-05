@@ -14,6 +14,7 @@ interface ListingCardAirbnbProps {
   isFavorite?: boolean;
   isAvailable?: boolean;
   bookingStatus?: BookingStatus;
+  isSharedSpace?: boolean;
 }
 
 const ListingCardAirbnb = ({
