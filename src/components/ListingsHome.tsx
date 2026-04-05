@@ -3,6 +3,7 @@ import { Listing } from "@/data/listings";
 
 interface ExtendedListing extends Listing {
   bookingStatus?: BookingStatus;
+  isSharedSpace?: boolean;
 }
 
 interface ListingsHomeProps {
