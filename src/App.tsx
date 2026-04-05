@@ -17,6 +17,7 @@ import SupportPage from "./pages/SupportPage";
 import BookingDetailPage from "./pages/BookingDetailPage";
 import BookingsPage from "./pages/BookingsPage";
 import ShareSpacePage from "./pages/ShareSpacePage";
+import SharedSpaceDetail from "./pages/SharedSpaceDetail";
 import SupportBubble from "./components/SupportBubble";
 import NotFound from "./pages/NotFound";
 
