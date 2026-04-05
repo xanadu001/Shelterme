@@ -53,7 +53,8 @@ const BookingPage = () => {
       const isUUID = id.length > 10;
       
       if (isUUID) {
-        const { data, error } = await supabase
+        // Try properties table first
+        const { data } = await supabase
           .from("properties")
           .select("id, title, location, price, period, images")
           .eq("id", id)
@@ -67,6 +68,25 @@ const BookingPage = () => {
             price: data.price,
             period: data.period,
             images: data.images && data.images.length > 0 ? data.images : ["/placeholder.svg"],
+          });
+          return;
+        }
+
+        // Fallback to shared_spaces table
+        const { data: sharedData } = await supabase
+          .from("shared_spaces")
+          .select("id, title, location, price, period, images")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (sharedData) {
+          setListing({
+            id: sharedData.id,
+            title: sharedData.title,
+            location: sharedData.location,
+            price: sharedData.price,
+            period: sharedData.period,
+            images: sharedData.images && sharedData.images.length > 0 ? sharedData.images : ["/placeholder.svg"],
           });
           return;
         }
