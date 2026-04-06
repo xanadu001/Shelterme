@@ -57,13 +57,35 @@ const BookingsPage = () => {
 
   const fetchBookings = async (currentUser: User) => {
     try {
-      const { data, error } = await supabase
+      // Fetch own bookings
+      const { data: ownBookings } = await supabase
         .from("bookings")
         .select("*")
         .eq("student_email", currentUser.email)
         .order("created_at", { ascending: false });
 
-      if (data) setBookings(data);
+      // Fetch shared spaces owned by user to find bookings for them
+      const { data: ownedSpaces } = await supabase
+        .from("shared_spaces")
+        .select("id")
+        .eq("owner_id", currentUser.id);
+
+      let spaceBookings: Booking[] = [];
+      if (ownedSpaces && ownedSpaces.length > 0) {
+        const spaceIds = ownedSpaces.map((s) => s.id);
+        const { data } = await supabase
+          .from("bookings")
+          .select("*")
+          .in("listing_id", spaceIds)
+          .order("created_at", { ascending: false });
+        if (data) spaceBookings = data;
+      }
+
+      // Merge and deduplicate
+      const allBookings = [...(ownBookings || []), ...spaceBookings];
+      const unique = Array.from(new Map(allBookings.map((b) => [b.id, b])).values());
+      unique.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setBookings(unique);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
